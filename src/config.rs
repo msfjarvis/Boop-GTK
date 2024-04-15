@@ -46,14 +46,12 @@ impl Config {
             .wrap_err("Failed to write to config file")?;
         }
 
-        let mut settings = config::Config::new();
-        if let Err(err) = settings.merge(config::File::from(config_path)) {
-            error!("Failed to read config file: {}", err);
-        }
+        let mut settings = config::Config::builder().add_source(config::File::from(config_path));
 
         let config = settings
-            .try_into()
-            .wrap_err("Failed to covert settings into Config")?;
+            .build()
+            .wrap_err("Failed to covert settings into Config")?
+            .try_deserialize()?;
 
         Ok((config, config_file_created)) // TODO: handle results
     }

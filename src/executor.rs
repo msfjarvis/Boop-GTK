@@ -255,6 +255,7 @@ impl Executor {
             let raw_source = String::from_utf8(
                 Scripts::get(&internal_path)
                     .ok_or_else(|| eyre!("No internal script with path \"{}\"", path))?
+                    .data
                     .to_vec(),
             )
             .wrap_err("Problem with file encoding")?;

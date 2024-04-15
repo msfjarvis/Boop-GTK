@@ -49,7 +49,8 @@ impl ScriptMap {
     fn load_internal(&mut self) {
         for file in Scripts::iter() {
             // scripts are internal, so we can unwrap "safely"
-            let script_source = String::from_utf8(Scripts::get(&file).unwrap().to_vec()).unwrap();
+            let script_source =
+                String::from_utf8(Scripts::get(&file).unwrap().data.to_vec()).unwrap();
             if let Ok(script) = Script::from_source(script_source, PathBuf::new()) {
                 self.0.insert(script.metadata.name.clone(), script);
             }

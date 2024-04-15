@@ -225,7 +225,6 @@ impl Script {
 mod tests {
     use super::*;
     use crate::{executor::TextReplacement, script::ParseScriptError};
-    use std::borrow::Cow;
 
     #[test]
     fn test_retain_execution_context() {
@@ -314,8 +313,8 @@ mod tests {
         for file in Scripts::iter() {
             println!("testing {}", file);
 
-            let source: Cow<'static, [u8]> = Scripts::get(&file).unwrap();
-            let script_source = String::from_utf8(source.to_vec()).unwrap();
+            let source = Scripts::get(&file).unwrap();
+            let script_source = String::from_utf8(source.data.to_vec()).unwrap();
 
             let full_text = match file.as_ref() {
                 "MinifyJSON.js" => "{\n\n\"foo\":\n\"bar\"}",
@@ -352,8 +351,8 @@ mod tests {
 
             println!("testing {}", file);
 
-            let source: Cow<'static, [u8]> = Scripts::get(&file).unwrap();
-            let script_source = String::from_utf8(source.to_vec()).unwrap();
+            let source = Scripts::get(&file).unwrap();
+            let script_source = String::from_utf8(source.data.to_vec()).unwrap();
 
             match Script::from_source(script_source, PathBuf::new()) {
                 Ok(mut script) => {
