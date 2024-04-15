@@ -203,8 +203,8 @@ impl Executor {
             let start = Instant::now();
 
             // initialize V8
-            let platform = v8::new_default_platform().unwrap();
-            v8::V8::initialize_platform(platform);
+            let platform = v8::new_default_platform(0, true);
+            v8::V8::initialize_platform(platform.into());
             v8::V8::initialize();
 
             info!("V8 initialized in {:?}", start.elapsed());
