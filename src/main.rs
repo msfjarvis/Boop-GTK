@@ -53,7 +53,7 @@ fn extract_language_file() -> Result<()> {
         .place_config_file("boop.lang")
         .wrap_err("Failed to construct language file path")?;
 
-    let mut lang_file = File::create(&lang_file_path).wrap_err("Failed to create language file")?;
+    let mut lang_file = File::create(lang_file_path).wrap_err("Failed to create language file")?;
 
     lang_file
         .write_all(include_bytes!("../boop.lang"))
@@ -122,7 +122,7 @@ fn main() -> Result<()> {
 
             // add config_dir to language manager's search path
             let dirs = language_manager.get_search_path();
-            let mut dirs: Vec<&str> = dirs.iter().map(|s| s.as_ref()).collect();
+            let mut dirs: Vec<&str> = dirs.iter().map(std::convert::AsRef::as_ref).collect();
             let config_dir_path = XDG_DIRS.get_config_home().to_string_lossy().to_string();
             dirs.push(&config_dir_path);
             language_manager.set_search_path(&dirs);
@@ -140,7 +140,7 @@ fn main() -> Result<()> {
         app.set_application(Some(application));
         app.show_all();
 
-        register_actions(&application, &app);
+        register_actions(application, &app);
 
         if config_file_created
             || config
@@ -172,7 +172,7 @@ fn register_actions(application: &Application, app: &App) {
         application.set_accels_for_action("app.command_palette", &["<Primary><Shift>P"]);
         command_palette_action.connect_activate(move |_, _| {
             app.run_command_palette()
-                .expect("Failed to run command palette")
+                .expect("Failed to run command palette");
         });
     }
 

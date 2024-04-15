@@ -46,7 +46,7 @@ impl Config {
             .wrap_err("Failed to write to config file")?;
         }
 
-        let mut settings = config::Config::builder().add_source(config::File::from(config_path));
+        let settings = config::Config::builder().add_source(config::File::from(config_path));
 
         let config = settings
             .build()
@@ -61,7 +61,7 @@ impl Config {
             .place_config_file("config.toml")
             .wrap_err("Failed to place config file")?;
 
-        File::create(&config_path)
+        File::create(config_path)
             .wrap_err("Failed to create config file")?
             .write_all(toml::to_string_pretty(self).unwrap().as_bytes())
             .wrap_err("Failed to write to config file")

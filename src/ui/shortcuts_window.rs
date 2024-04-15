@@ -32,7 +32,7 @@ impl ShortcutsWindow {
         let window = gtk::ShortcutsWindowBuilder::new().build();
 
         let general_group = gtk::ShortcutsGroupBuilder::new().title("General").build();
-        for (title, accelerator) in GENERAL_SHORTCUTS.iter() {
+        for (title, accelerator) in &GENERAL_SHORTCUTS {
             general_group.add(
                 &gtk::ShortcutsShortcutBuilder::new()
                     .title(title)
@@ -43,7 +43,7 @@ impl ShortcutsWindow {
         }
 
         let editor_group = gtk::ShortcutsGroupBuilder::new().title("Editor").build();
-        for (title, accelerator) in EDITOR_SHORTCUTS.iter() {
+        for (title, accelerator) in &EDITOR_SHORTCUTS {
             editor_group.add(
                 &gtk::ShortcutsShortcutBuilder::new()
                     .title(title)

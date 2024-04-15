@@ -158,9 +158,9 @@ impl Display for ExecutorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ExecutorError::SourceExceedsMaxLength => write!(f, "source exceeds max length"),
-            ExecutorError::Compile(exception) => write!(f, "JS compile exception: {:?}", exception),
+            ExecutorError::Compile(exception) => write!(f, "JS compile exception: {exception:?}"),
             ExecutorError::Execute(exception) => {
-                write!(f, "JS execution exception: {:?}", exception)
+                write!(f, "JS execution exception: {exception:?}")
             }
             ExecutorError::NoMain => write!(f, "no main function"),
         }
@@ -279,7 +279,7 @@ impl Executor {
 
         let mut raw_source = String::new();
         File::open(external_path)
-            .wrap_err_with(|| format!("Could not open \"{}\"", path))?
+            .wrap_err_with(|| format!("Could not open \"{path}\""))?
             .read_to_string(&mut raw_source)
             .wrap_err("Problem reading file")?;
 
@@ -448,7 +448,7 @@ impl Executor {
                 .main_function
                 .as_ref()
                 .wrap_err("main_function not initialized")?
-                .get(scope);
+                .open(scope);
             let escape_scope = &mut v8::EscapableHandleScope::new(scope);
             let tc_scope = &mut v8::TryCatch::new(escape_scope);
 
@@ -582,7 +582,7 @@ impl Executor {
             .replace(info);
 
         let undefined = v8::undefined(scope).into();
-        rv.set(undefined)
+        rv.set(undefined);
     }
 
     fn payload_post_error(
@@ -604,7 +604,7 @@ impl Executor {
             .replace(error);
 
         let undefined = v8::undefined(scope).into();
-        rv.set(undefined)
+        rv.set(undefined);
     }
 
     fn payload_insert(
@@ -626,7 +626,7 @@ impl Executor {
             .push(insert);
 
         let undefined = v8::undefined(scope).into();
-        rv.set(undefined)
+        rv.set(undefined);
     }
 
     fn payload_full_text_getter(
@@ -790,7 +790,7 @@ mod tests {
     fn test_error_new_compile() {
         init();
         let source = "this won't compile!";
-        let result = Executor::new(&source);
+        let result = Executor::new(source);
         assert_eq!(
             result.unwrap_err().downcast::<ExecutorError>().unwrap(),
             ExecutorError::Compile(JSException {
@@ -823,7 +823,7 @@ mod tests {
     #[test]
     fn test_error_execute_no_main() {
         init();
-        let source = r#"let i = 100;"#;
+        let source = r"let i = 100;";
 
         assert_eq!(
             Executor::new(source)
@@ -831,7 +831,7 @@ mod tests {
                 .downcast::<ExecutorError>()
                 .unwrap(),
             ExecutorError::NoMain
-        )
+        );
     }
 
     #[test]
@@ -923,9 +923,8 @@ mod tests {
 
         let source = format!(
             "function main() {{
-                let foo = require(\"{}\");
-            }}",
-            file_name
+                let foo = require(\"{file_name}\");
+            }}"
         );
 
         assert_eq!(
@@ -938,7 +937,7 @@ mod tests {
             ExecutorError::Execute(JSException {
                 exception_str: "SyntaxError: Invalid or unexpected token".to_string(),
                 resource_name: Some("undefined".to_string()),
-                source_line: Some(r#"┻━┻ ︵ ¯\(ツ)/¯ ︵ ┻━┻"#.to_string()),
+                source_line: Some(r"┻━┻ ︵ ¯\(ツ)/¯ ︵ ┻━┻".to_string()),
                 line_number: Some(17),
                 columns: Some((0, 0))
             }),
@@ -960,9 +959,8 @@ mod tests {
 
         let source = format!(
             "function main() {{
-                let foo = require(\"{}\");
-            }}",
-            file_name
+                let foo = require(\"{file_name}\");
+            }}"
         );
 
         assert_eq!(
@@ -981,6 +979,6 @@ mod tests {
                 line_number: Some(17),
                 columns: Some((14, 15))
             })
-        )
+        );
     }
 }

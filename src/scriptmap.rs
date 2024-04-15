@@ -104,7 +104,7 @@ impl ScriptMap {
                         // remove script
                         // TODO: replace with drain_filter when stabalized
                         let mut matched = None;
-                        for (name, script) in scripts.0.iter() {
+                        for (name, script) in &scripts.0 {
                             if script.path == file {
                                 matched = Some(name.clone());
                             }
@@ -141,7 +141,7 @@ impl ScriptMap {
 
                 info!("watching {}", script_dir.display());
 
-                if let Err(watch_error) = watcher.watch(&script_dir, RecursiveMode::Recursive) {
+                if let Err(watch_error) = watcher.watch(script_dir, RecursiveMode::Recursive) {
                     error!("watch start error: {}", watch_error);
                     return;
                 }

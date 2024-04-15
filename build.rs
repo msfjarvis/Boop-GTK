@@ -6,9 +6,9 @@ const XML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
     <gresource prefix="/fyi/zoey/Boop-GTK">
 "#;
 
-const XML_FOOTER: &str = r#"    </gresource>
+const XML_FOOTER: &str = r"    </gresource>
 </gresources>
-"#;
+";
 
 fn add_files(xml: &mut String, folder: &str) {
     for path in fs::read_dir(folder).unwrap() {
@@ -24,7 +24,7 @@ fn add_files(xml: &mut String, folder: &str) {
                 path.path()
                     .display()
                     .to_string()
-                    .replace("\\", "/")
+                    .replace('\\', "/")
                     .trim_start_matches("resources/")
             ));
         } else if path.path().is_dir() {

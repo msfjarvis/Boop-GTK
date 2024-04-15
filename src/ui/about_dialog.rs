@@ -19,7 +19,7 @@ impl AboutDialog {
 
         dialog.set_version(Some(env!("CARGO_PKG_VERSION")));
 
-        for (_, script) in scripts.read().expect("Scripts lock is poisoned").0.iter() {
+        for (_, script) in &scripts.read().expect("Scripts lock is poisoned").0 {
             if let Some(author) = &script.metadata.author {
                 dialog.add_credit_section(&format!("{} script", &script.metadata.name), &[author]);
             }

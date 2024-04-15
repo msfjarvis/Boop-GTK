@@ -99,12 +99,7 @@ impl App {
         {
             let scripts = app.scripts.clone();
             app.reset_scripts_button.connect_clicked(move |_| {
-                for (_, script) in scripts
-                    .write()
-                    .expect("Scripts lock is poisoned")
-                    .0
-                    .iter_mut()
-                {
+                for (_, script) in &mut scripts.write().expect("Scripts lock is poisoned").0 {
                     script.kill_thread();
                 }
             });
@@ -130,7 +125,7 @@ impl App {
                     source_view
                         .get_sourceview_buffer()
                         .expect("Failed to get sourceview buffer")
-                        .set_style_scheme(scheme.as_ref())
+                        .set_style_scheme(scheme.as_ref());
                 });
         }
 
@@ -188,7 +183,7 @@ impl App {
             let app_ = app.clone();
             app.header_button.connect_clicked(move |_| {
                 app_.run_command_palette()
-                    .expect("Failed to run command palette")
+                    .expect("Failed to run command palette");
             });
         }
 
@@ -257,10 +252,7 @@ impl App {
 
     pub fn post_notification_error(&self, text: &str, delay: u32) {
         self.post_notification(
-            &format!(
-                r#"<span foreground="red" weight="bold">ERROR:</span> {}"#,
-                text
-            ),
+            &format!(r#"<span foreground="red" weight="bold">ERROR:</span> {text}"#),
             delay,
         );
     }
@@ -285,7 +277,7 @@ impl App {
 
     pub fn re_execute(&self) -> Result<()> {
         if let Some(script_key) = &*self.last_script_executed.read().unwrap() {
-            self.execute_script(&script_key)
+            self.execute_script(script_key)
                 .wrap_err("Failed to execute script")
         } else {
             warn!("no last script");
@@ -313,8 +305,7 @@ impl App {
 
         let selection_text = buffer
             .get_selection_bounds()
-            .map(|(start, end)| buffer.get_text(&start, &end, false))
-            .flatten()
+            .and_then(|(start, end)| buffer.get_text(&start, &end, false))
             .map(|s| s.to_string());
 
         let status_result = script.execute(buffer_text.as_str(), selection_text.as_deref());
@@ -324,17 +315,14 @@ impl App {
                 // TODO: how to handle multiple messages?
                 if let Some(error) = status.error() {
                     self.post_notification(
-                        &format!(
-                            r#"<span foreground="red" weight="bold">ERROR:</span> {}"#,
-                            error
-                        ),
+                        &format!(r#"<span foreground="red" weight="bold">ERROR:</span> {error}"#),
                         NOTIFICATION_LONG_DELAY,
                     );
                 } else if let Some(info) = status.info() {
-                    self.post_notification(&info, NOTIFICATION_LONG_DELAY);
+                    self.post_notification(info, NOTIFICATION_LONG_DELAY);
                 }
                 self.do_replacement(status.clone().into_replacement())
-                    .wrap_err_with(|| format!("Failed to make replacement: {:?}", status))?;
+                    .wrap_err_with(|| format!("Failed to make replacement: {status:?}"))?;
             }
             Err(err) => {
                 let executor_err = err.downcast::<ExecutorError>().unwrap(); // can't recover from other errors
@@ -399,7 +387,7 @@ impl App {
                     None => {
                         let mut insert_point =
                             buffer.get_iter_at_offset(buffer.get_property_cursor_position());
-                        buffer.insert(&mut insert_point, &safe_text)
+                        buffer.insert(&mut insert_point, &safe_text);
                     }
                 }
             }

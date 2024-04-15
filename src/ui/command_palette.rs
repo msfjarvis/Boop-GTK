@@ -146,8 +146,7 @@ impl CommandPaletteDialog {
 
                 let entry_text = format!(
                     "<b>{}</b>\n<span size=\"smaller\">{}</span>",
-                    script.metadata.name.to_string(),
-                    script.metadata.description.to_string()
+                    script.metadata.name, script.metadata.description
                 );
 
                 let values: [&dyn ToValue; 5] =
@@ -192,7 +191,7 @@ impl CommandPaletteDialog {
             let scripts = self.scripts.clone();
             self.search_bar.connect_changed(move |s| {
                 CommandPaletteDialog::on_changed(s, &lb, scripts.clone())
-                    .expect("On change handler failed")
+                    .expect("On change handler failed");
             });
         }
 
@@ -202,7 +201,7 @@ impl CommandPaletteDialog {
             self.dialog_tree_view
                 .connect_row_activated(move |tv, _, _| {
                     CommandPaletteDialog::on_click(tv, &dialog, &selected)
-                        .expect("On click handler failed")
+                        .expect("On click handler failed");
                 });
         }
     }
@@ -263,7 +262,7 @@ impl CommandPaletteDialog {
             let value = model.get_value(
                 &model
                     .get_iter(&path)
-                    .wrap_err_with(|| format!("failed to get iter for path: {:?}", path))?,
+                    .wrap_err_with(|| format!("failed to get iter for path: {path:?}"))?,
                 NAME_COLUMN as i32,
             );
 
@@ -335,7 +334,7 @@ impl CommandPaletteDialog {
             }
         } else {
             let results: HashMap<String, f64> = Fuse::default()
-                .search_text_in_fuse_list(&searchbar_text, &*script_vec)
+                .search_text_in_fuse_list(&searchbar_text, &script_vec)
                 .into_iter()
                 .map(|result| (script_vec[result.index].metadata.name.clone(), result.score))
                 .collect();
@@ -346,7 +345,7 @@ impl CommandPaletteDialog {
 
                 let iter = store
                     .get_iter(&path)
-                    .wrap_err_with(|| format!("failed to get iter for path: {:?}", path))?;
+                    .wrap_err_with(|| format!("failed to get iter for path: {path:?}"))?;
 
                 // TODO: use gtk_liststore_item crate
                 let script_name: String = store

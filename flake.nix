@@ -96,7 +96,6 @@
           ++ (drv.nativeBuildInputs or [])
           ++ (drv.propagatedBuildInputs or [])
           ++ (drv.propagatedNativeBuildInputs or []);
-        includes = Boop-GTK.buildInputs or [];
       in
         pkgs.devshell.mkShell {
           imports = ["${pkgs.devshell.extraModulesDir}/language/c.nix"];

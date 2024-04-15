@@ -34,8 +34,8 @@ impl fmt::Display for ParseScriptError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseScriptError::NoMetadata => write!(f, "no metadata"),
-            ParseScriptError::InvalidMetadata(e) => write!(f, "invalid metadata: {}", e),
-            ParseScriptError::FailedToRead(e) => write!(f, "failed to read script: {}", e),
+            ParseScriptError::InvalidMetadata(e) => write!(f, "invalid metadata: {e}"),
+            ParseScriptError::FailedToRead(e) => write!(f, "failed to read script: {e}"),
         }
     }
 }
@@ -52,7 +52,7 @@ pub struct Metadata {
 
 impl Fuseable for Metadata {
     fn properties(&self) -> Vec<fuse_rust::FuseProperty> {
-        return vec![
+        vec![
             FuseProperty {
                 value: "name".to_string(),
                 weight: 1.0,
@@ -65,7 +65,7 @@ impl Fuseable for Metadata {
             //     value: "tags".to_string(),
             //     weight: 0.6,
             // },
-        ];
+        ]
     }
 
     fn lookup(&self, key: &str) -> Option<&str> {
@@ -152,7 +152,7 @@ impl Script {
                                 info!(
                                     "request received, full_text: {} bytes, selection: {} bytes",
                                     full_text.len(),
-                                    selection.as_ref().map(|s| s.len()).unwrap_or(0),
+                                    selection.as_ref().map_or(0, std::string::String::len),
                                 );
                                 let result = executor
                                     .execute(&full_text, selection.as_deref())
@@ -200,7 +200,7 @@ impl Script {
             .sender
             .send(ExecutorJob::Request((
                 full_text.to_owned(),
-                selection.map(|s| s.to_owned()),
+                selection.map(std::borrow::ToOwned::to_owned),
             )))
             .wrap_err("Channel is disconnected")?;
 
@@ -311,7 +311,7 @@ mod tests {
         struct Scripts;
 
         for file in Scripts::iter() {
-            println!("testing {}", file);
+            println!("testing {file}");
 
             let source = Scripts::get(&file).unwrap();
             let script_source = String::from_utf8(source.data.to_vec()).unwrap();
@@ -330,7 +330,7 @@ mod tests {
                     ParseScriptError::NoMetadata => {
                         assert!(file.starts_with("lib/")); // only library files should fail
                     }
-                    e => panic!(e),
+                    e => panic!("{}", e),
                 },
             }
         }
@@ -349,7 +349,7 @@ mod tests {
                 continue; // not a javascript file
             }
 
-            println!("testing {}", file);
+            println!("testing {file}");
 
             let source = Scripts::get(&file).unwrap();
             let script_source = String::from_utf8(source.data.to_vec()).unwrap();
@@ -363,7 +363,7 @@ mod tests {
                         )
                         .unwrap();
                 }
-                Err(e) => panic!(e),
+                Err(e) => panic!("{}", e),
             }
         }
     }
