@@ -1,7 +1,6 @@
 use crate::{scriptmap::Scripts, XDG_DIRS};
 use dirty2::Dirty;
 use eyre::{Context, ContextCompat, Result};
-use rusty_v8 as v8;
 use std::{
     cell::RefCell,
     convert::TryFrom,
@@ -655,6 +654,7 @@ impl Executor {
         _key: v8::Local<'_, v8::Name>,
         value: v8::Local<'_, v8::Value>,
         _args: v8::PropertyCallbackArguments<'_>,
+        _ret: v8::ReturnValue,
     ) {
         let new_value = value
             .to_string(scope)
@@ -700,6 +700,7 @@ impl Executor {
         _key: v8::Local<'_, v8::Name>,
         value: v8::Local<'_, v8::Value>,
         _args: v8::PropertyCallbackArguments<'_>,
+        _ret: v8::ReturnValue,
     ) {
         let new_value = value
             .to_string(scope)
@@ -745,6 +746,7 @@ impl Executor {
         _key: v8::Local<'_, v8::Name>,
         value: v8::Local<'_, v8::Value>,
         _args: v8::PropertyCallbackArguments<'_>,
+        _ret: v8::ReturnValue,
     ) {
         let new_value = value
             .to_string(scope)
@@ -794,7 +796,7 @@ mod tests {
         assert_eq!(
             result.unwrap_err().downcast::<ExecutorError>().unwrap(),
             ExecutorError::Compile(JSException {
-                exception_str: "SyntaxError: Unexpected identifier".to_string(),
+                exception_str: "SyntaxError: Unexpected identifier 'won'".to_string(),
                 resource_name: Some("undefined".to_string()),
                 source_line: Some("this won\'t compile!".to_string()),
                 line_number: Some(1),
