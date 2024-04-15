@@ -1,5 +1,5 @@
 use eyre::{Context, Report, Result};
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{recommended_watcher, RecursiveMode, Watcher};
 use rust_embed::RustEmbed;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -83,7 +83,7 @@ impl ScriptMap {
         trace!("watch_scripts_folder");
 
         // watch for changes to script folder
-        let watcher: notify::Result<RecommendedWatcher> = Watcher::new_immediate(move |res| {
+        let watcher = recommended_watcher(move |res| {
             debug!("res: {:?}", res);
             match res {
                 Ok(event) => {

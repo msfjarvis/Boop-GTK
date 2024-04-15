@@ -43,24 +43,24 @@ serde = { version = "1.0", features = ["derive"] }
 serde_jsonrc = "0.1"
 toml = "0.5"
 # Logging
-log = "0.4.14"
-env_logger = "0.8.3"
+log = "0.4.21"
+env_logger = "0.8.4"
 # Fuzzy search
 fuse-rust = "0.2.0"
 # File system
-open = "1.7.0"
-xdg = "2.2.0"
-notify = "5.0.0-pre.6"
+open = "1.7.1"
+xdg = "2.5.2"
+notify = "5.2.0"
 config = "0.9"
 # Misc utils
 lazy_static = "1.4.0"
-once_cell = "1.7.2"
+once_cell = "1.19.0"
 rust-embed = { version = "5.9.0", features = ["debug-embed"] }
 dirty2 = "0.1.0"
-eyre = "0.6.5"
+eyre = "0.6.12"
 color-eyre = "0.5.11"
-crossbeam = "0.8.0"
-fs_extra = "1.2.0"
+crossbeam = "0.8.4"
+fs_extra = "1.3.0"
 
 [dependencies.gtk]
 version = "0.9"
@@ -71,8 +71,8 @@ version = "0.9"
 features = ["v2_44"]
 
 [dev-dependencies]
-tempfile = "3.2.0"
+tempfile = "3.10.1"
 directories = "3.0" # TODO: remove
 
 [build-dependencies]
-fs_extra = "1.2.0"
+fs_extra = "1.3.0"
