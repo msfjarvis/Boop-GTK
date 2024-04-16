@@ -31,6 +31,7 @@ use gio::{prelude::*, ApplicationFlags};
 use gtk::{prelude::*, Application, Window};
 
 use std::{
+    convert::AsRef,
     fs,
     io::prelude::*,
     path::PathBuf,
@@ -122,7 +123,7 @@ fn main() -> Result<()> {
 
             // add config_dir to language manager's search path
             let dirs = language_manager.get_search_path();
-            let mut dirs: Vec<&str> = dirs.iter().map(std::convert::AsRef::as_ref).collect();
+            let mut dirs: Vec<&str> = dirs.iter().map(AsRef::as_ref).collect();
             let config_dir_path = XDG_DIRS.get_config_home().to_string_lossy().to_string();
             dirs.push(&config_dir_path);
             language_manager.set_search_path(&dirs);

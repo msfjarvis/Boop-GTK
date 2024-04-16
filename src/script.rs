@@ -3,7 +3,7 @@ use crossbeam::channel::{bounded, Receiver, Sender};
 use eyre::{Context, Result};
 use fuse_rust::{FuseProperty, Fuseable};
 use serde::Deserialize;
-use std::{fmt, fs, path::PathBuf, thread};
+use std::{borrow::ToOwned, fmt, fs, path::PathBuf, thread};
 
 pub struct Script {
     pub metadata: Metadata,
@@ -152,7 +152,7 @@ impl Script {
                                 info!(
                                     "request received, full_text: {} bytes, selection: {} bytes",
                                     full_text.len(),
-                                    selection.as_ref().map_or(0, std::string::String::len),
+                                    selection.as_ref().map_or(0, String::len),
                                 );
                                 let result = executor
                                     .execute(&full_text, selection.as_deref())
@@ -200,7 +200,7 @@ impl Script {
             .sender
             .send(ExecutorJob::Request((
                 full_text.to_owned(),
-                selection.map(std::borrow::ToOwned::to_owned),
+                selection.map(ToOwned::to_owned),
             )))
             .wrap_err("Channel is disconnected")?;
 
