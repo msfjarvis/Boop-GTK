@@ -11,6 +11,17 @@
         "v8"
       ],
       "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "gdk",
+        "gdk-pixbuf",
+        "gio",
+        "glib",
+        "gtk",
+        "pango"
+      ],
+      "groupName": "GTK libraries"
     }
   ]
 }
