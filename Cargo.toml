@@ -29,7 +29,7 @@ lto = "off"
 # GTK
 glib = "0.10"
 gdk = "0.13"
-gdk-pixbuf = "0.9"
+gdk-pixbuf = "0.19"
 pango = "0.9"
 sourceview = { version = "0.9", features = ["v3_16"] }
 # GTK utils
