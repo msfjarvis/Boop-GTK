@@ -14,10 +14,7 @@ repository = "https://github.com/zoeyfyi/boop-gtk/"
 keywords = ["gtk", "text-editor", "editor", "linux", "javascript"]
 categories = ["text-editors"]
 exclude = [
-    "submodules/flatpak-builder-tools", 
     "submodules/svg-stroke-to-path", 
-    "flatpak",
-    "snap"
 ]
 publish = false
 
