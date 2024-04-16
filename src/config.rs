@@ -8,17 +8,17 @@ use serde::{Deserialize, Serialize};
 #[serde(default)]
 pub struct Config {
     pub show_shortcuts_on_open: bool,
-    pub editor: EditorConfig,
+    pub editor: Editor,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct EditorConfig {
+pub struct Editor {
     pub colour_scheme_id: String,
 }
 
-impl Default for EditorConfig {
+impl Default for Editor {
     fn default() -> Self {
-        EditorConfig {
+        Editor {
             colour_scheme_id: String::from("classic"),
         }
     }
@@ -72,7 +72,7 @@ impl Config {
     }
 }
 
-impl EditorConfig {
+impl Editor {
     pub fn set_colour_scheme_id(&mut self, id: &str) {
         self.colour_scheme_id = String::from(id);
     }

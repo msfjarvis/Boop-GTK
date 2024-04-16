@@ -3,8 +3,8 @@ use crate::{
     executor::{self},
     script::Script,
     scriptmap::ScriptMap,
-    ui::command_palette::CommandPaletteDialog,
-    ui::{preferences_dialog::PreferencesDialog, shortcuts_window::ShortcutsWindow},
+    ui::command_palette::Dialog as CommandDialog,
+    ui::{preferences_dialog::Dialog as PreferencesDialog, shortcuts_window::ShortcutsWindow},
     util::SourceViewExt,
     util::StringExt,
     XDG_DIRS,
@@ -25,7 +25,7 @@ use super::about_dialog::AboutDialog;
 pub const NOTIFICATION_LONG_DELAY: u32 = 5000;
 
 #[derive(Gladis, Clone, Shrinkwrap)]
-pub struct AppWidgets {
+pub struct Widgets {
     #[shrinkwrap(main_field)]
     pub window: ApplicationWindow,
 
@@ -48,7 +48,7 @@ pub struct AppWidgets {
 #[derive(Clone, Shrinkwrap)]
 pub struct App {
     #[shrinkwrap(main_field)]
-    pub widgets: AppWidgets,
+    pub widgets: Widgets,
     preferences_dialog: PreferencesDialog,
     about_dialog: AboutDialog,
 
@@ -59,16 +59,17 @@ pub struct App {
 }
 
 impl App {
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn new(
-        boop_language: Language,
+        boop_language: &Language,
         scripts: Arc<RwLock<ScriptMap>>,
         config: Arc<RwLock<Config>>,
     ) -> Result<Self> {
         let app = App {
-            widgets: AppWidgets::from_resource("/fyi/zoey/Boop-GTK/boop-gtk.glade")
+            widgets: Widgets::from_resource("/fyi/zoey/Boop-GTK/boop-gtk.glade")
                 .wrap_err("Failed to load boop-gtk.glade")?,
-            preferences_dialog: PreferencesDialog::new(config.clone())?,
-            about_dialog: AboutDialog::new(scripts.clone())?,
+            preferences_dialog: PreferencesDialog::new(&config)?,
+            about_dialog: AboutDialog::new(&scripts)?,
             scripts,
             notification_source_id: Arc::new(RwLock::new(None)),
             last_script_executed: Arc::new(RwLock::new(None)),
@@ -99,7 +100,12 @@ impl App {
         {
             let scripts = app.scripts.clone();
             app.reset_scripts_button.connect_clicked(move |_| {
-                for (_, script) in &mut scripts.write().expect("Scripts lock is poisoned").0 {
+                for script in scripts
+                    .write()
+                    .expect("Scripts lock is poisoned")
+                    .0
+                    .values_mut()
+                {
                     script.kill_thread();
                 }
             });
@@ -190,14 +196,14 @@ impl App {
         Ok(app)
     }
 
-    fn configure(&self, boop_language: Language) -> Result<()> {
+    fn configure(&self, boop_language: &Language) -> Result<()> {
         self.preferences_dialog
             .set_transient_for(Some(&self.window));
 
         // update source_view syntax highlighting
         let buffer = self.source_view.get_sourceview_buffer()?;
         buffer.set_highlight_syntax(true);
-        buffer.set_language(Some(&boop_language));
+        buffer.set_language(Some(boop_language));
 
         Ok(())
     }
@@ -258,7 +264,7 @@ impl App {
     }
 
     pub fn run_command_palette(&self) -> Result<()> {
-        let dialog = CommandPaletteDialog::new(&self.window, self.scripts.clone())?;
+        let dialog = CommandDialog::new(&self.window, &self.scripts)?;
         dialog.show_all();
 
         if let gtk::ResponseType::Accept = dialog.run() {

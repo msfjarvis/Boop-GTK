@@ -3,41 +3,41 @@ use std::sync::{Arc, RwLock};
 use eyre::{Context, Result};
 use gladis::Gladis;
 use glib::SignalHandlerId;
-use gtk::{prelude::*, Dialog, Switch};
+use gtk::{prelude::*, Dialog as GtkDialog, Switch};
 use sourceview::{StyleScheme, StyleSchemeChooserExt, StyleSchemeExt, StyleSchemeManagerExt};
 
 use crate::config::Config;
 
 #[derive(Gladis, Clone, Shrinkwrap)]
-pub struct PreferencesDialogWidgets {
+pub struct Widgets {
     #[shrinkwrap(main_field)]
-    preference_dialog: Dialog, // TODO: change to preferences_dialog
+    preference_dialog: GtkDialog, // TODO: change to preferences_dialog
 
     color_scheme_button: sourceview::StyleSchemeChooserButton,
     shortcut_switch: Switch,
 }
 
 #[derive(Clone, Shrinkwrap)]
-pub struct PreferencesDialog {
+pub struct Dialog {
     #[shrinkwrap(main_field)]
-    widgets: PreferencesDialogWidgets,
+    widgets: Widgets,
     config: Arc<RwLock<Config>>,
 }
 
-impl PreferencesDialog {
-    pub(crate) fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let mut dialog = PreferencesDialog {
-            widgets: PreferencesDialogWidgets::from_resource("/fyi/zoey/Boop-GTK/boop-gtk.glade")
+impl Dialog {
+    pub(crate) fn new(config: &Arc<RwLock<Config>>) -> Result<Self> {
+        let mut dialog = Dialog {
+            widgets: Widgets::from_resource("/fyi/zoey/Boop-GTK/boop-gtk.glade")
                 .wrap_err("Failed to load boop-gtk.glade")?,
             config: config.clone(),
         };
 
         dialog.update_state_from_config()?;
-        dialog.connect_config_style_scheme_notify(
-            PreferencesDialog::on_config_style_scheme_notify(config.clone()),
-        );
+        dialog.connect_config_style_scheme_notify(Dialog::on_config_style_scheme_notify(
+            config.clone(),
+        ));
         dialog.connect_config_open_shortcuts_on_startup_notify(
-            PreferencesDialog::on_config_open_shortcuts_on_startup_notify(config.clone()),
+            Dialog::on_config_open_shortcuts_on_startup_notify(config.clone()),
         );
 
         Ok(dialog)

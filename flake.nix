@@ -81,9 +81,7 @@
         });
     in {
       checks = {
-        # Temporarily disabled while I am working it out
-        # Boop-GTK-clippy
-        inherit Boop-GTK Boop-GTK-audit Boop-GTK-fmt Boop-GTK-nextest;
+        inherit Boop-GTK Boop-GTK-audit Boop-GTK-clippy Boop-GTK-fmt Boop-GTK-nextest;
       };
 
       packages.default = Boop-GTK;

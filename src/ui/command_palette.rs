@@ -5,12 +5,13 @@ use gio::prelude::*;
 use gladis::Gladis;
 use glib::Type;
 use gtk::prelude::*;
-use gtk::{Dialog, Entry, TreePath, TreeView, Window};
+use gtk::{Dialog as GtkDialog, Entry, TreePath, TreeView, Window};
 use once_cell::unsync::OnceCell;
 use shrinkwraprs::Shrinkwrap;
 
 use crate::{script::Script, scriptmap::ScriptMap};
 
+use std::convert::TryInto;
 use std::{
     collections::HashMap,
     rc::Rc,
@@ -44,29 +45,31 @@ const ICON_COLUMN_WIDTH: i32 = ICON_COLUMN_PADDING + 32 + ICON_COLUMN_PADDING; /
 const TEXT_COLUMN_WIDTH: i32 = DIALOG_WIDTH - ICON_COLUMN_WIDTH;
 
 #[derive(Shrinkwrap, Gladis)]
-pub struct CommandPaletteDialogWidgets {
+pub struct DialogWidgets {
     #[shrinkwrap(main_field)]
-    dialog: Dialog,
+    dialog: GtkDialog,
     dialog_tree_view: TreeView,
     search_bar: Entry,
 }
 
 #[derive(Shrinkwrap)]
-pub struct CommandPaletteDialog {
+pub struct Dialog {
     #[shrinkwrap(main_field)]
-    widgets: CommandPaletteDialogWidgets,
+    widgets: DialogWidgets,
 
     scripts: Arc<RwLock<ScriptMap>>,
     selected_script: Rc<OnceCell<String>>,
 }
 
-impl CommandPaletteDialog {
-    pub(crate) fn new<P: IsA<Window>>(window: &P, scripts: Arc<RwLock<ScriptMap>>) -> Result<Self> {
-        let widgets =
-            CommandPaletteDialogWidgets::from_resource("/fyi/zoey/Boop-GTK/command-palette.glade")
-                .wrap_err("Failed to load command-palette.glade")?;
+impl Dialog {
+    pub(crate) fn new<P: IsA<Window>>(
+        window: &P,
+        scripts: &Arc<RwLock<ScriptMap>>,
+    ) -> Result<Self> {
+        let widgets = DialogWidgets::from_resource("/fyi/zoey/Boop-GTK/command-palette.glade")
+            .wrap_err("Failed to load command-palette.glade")?;
 
-        let command_palette_dialog = CommandPaletteDialog {
+        let command_palette_dialog = Dialog {
             widgets,
             scripts: scripts.clone(),
             selected_script: Rc::new(OnceCell::new()),
@@ -84,7 +87,7 @@ impl CommandPaletteDialog {
             );
 
             let filtered_store = gtk::TreeModelFilter::new(&store, None);
-            filtered_store.set_visible_column(VISIBLE_COLUMN as i32);
+            filtered_store.set_visible_column(VISIBLE_COLUMN.try_into()?);
 
             // icon column
             {
@@ -94,7 +97,7 @@ impl CommandPaletteDialog {
 
                 let column = gtk::TreeViewColumn::new();
                 column.pack_start(&renderer, false);
-                column.add_attribute(&renderer, "icon-name", ICON_COLUMN as i32);
+                column.add_attribute(&renderer, "icon-name", ICON_COLUMN.try_into()?);
 
                 command_palette_dialog
                     .dialog_tree_view
@@ -111,7 +114,7 @@ impl CommandPaletteDialog {
                 column.pack_start(&renderer, true);
                 column.set_sizing(gtk::TreeViewColumnSizing::Autosize);
                 column.set_max_width(TEXT_COLUMN_WIDTH);
-                column.add_attribute(&renderer, "markup", TEXT_COLUMN as i32);
+                column.add_attribute(&renderer, "markup", TEXT_COLUMN.try_into()?);
 
                 command_palette_dialog
                     .dialog_tree_view
@@ -125,7 +128,7 @@ impl CommandPaletteDialog {
 
                     let column = gtk::TreeViewColumn::new();
                     column.pack_start(&renderer, false);
-                    column.add_attribute(&renderer, "markup", *c as i32);
+                    column.add_attribute(&renderer, "markup", (*c).try_into()?);
 
                     command_palette_dialog
                         .dialog_tree_view
@@ -149,6 +152,7 @@ impl CommandPaletteDialog {
                     script.metadata.name, script.metadata.description
                 );
 
+                #[allow(clippy::cast_possible_wrap)]
                 let values: [&dyn ToValue; 5] =
                     [&icon_name, &entry_text, &name, &(-(index as i64)), &true];
                 store.set(&store.append(), &COLUMNS, &values);
@@ -181,7 +185,7 @@ impl CommandPaletteDialog {
             let selected = self.selected_script.clone();
 
             self.dialog.connect_key_press_event(move |_, k| {
-                CommandPaletteDialog::on_key_press(k, &lb, &dialog, &selected)
+                Dialog::on_key_press(k, &lb, &dialog, &selected)
                     .expect("On key press handler failed")
             });
         }
@@ -190,8 +194,7 @@ impl CommandPaletteDialog {
             let lb = self.dialog_tree_view.clone();
             let scripts = self.scripts.clone();
             self.search_bar.connect_changed(move |s| {
-                CommandPaletteDialog::on_changed(s, &lb, scripts.clone())
-                    .expect("On change handler failed");
+                Dialog::on_changed(s, &lb, &scripts).expect("On change handler failed");
             });
         }
 
@@ -200,8 +203,7 @@ impl CommandPaletteDialog {
             let selected = self.selected_script.clone();
             self.dialog_tree_view
                 .connect_row_activated(move |tv, _, _| {
-                    CommandPaletteDialog::on_click(tv, &dialog, &selected)
-                        .expect("On click handler failed");
+                    Dialog::on_click(tv, &dialog, &selected).expect("On click handler failed");
                 });
         }
     }
@@ -209,7 +211,7 @@ impl CommandPaletteDialog {
     fn on_key_press(
         key: &EventKey,
         dialog_tree_view: &TreeView,
-        dialog: &Dialog,
+        dialog: &GtkDialog,
         selected: &OnceCell<String>,
     ) -> Result<Inhibit> {
         let model: gtk::TreeModelFilter = dialog_tree_view.get_model().unwrap().downcast().unwrap();
@@ -243,7 +245,7 @@ impl CommandPaletteDialog {
 
             return Ok(Inhibit(true));
         } else if key == keys::constants::Return || key == keys::constants::KP_Enter {
-            CommandPaletteDialog::on_click(dialog_tree_view, dialog, selected)?;
+            Dialog::on_click(dialog_tree_view, dialog, selected)?;
         } else if key == keys::constants::Escape {
             dialog.close();
         }
@@ -253,7 +255,7 @@ impl CommandPaletteDialog {
 
     fn on_click(
         dialog_tree_view: &TreeView,
-        dialog: &Dialog,
+        dialog: &GtkDialog,
         selected: &OnceCell<String>,
     ) -> Result<()> {
         let model: gtk::TreeModelFilter = dialog_tree_view.get_model().unwrap().downcast().unwrap();
@@ -263,7 +265,7 @@ impl CommandPaletteDialog {
                 &model
                     .get_iter(&path)
                     .wrap_err_with(|| format!("failed to get iter for path: {path:?}"))?,
-                NAME_COLUMN as i32,
+                NAME_COLUMN.try_into()?,
             );
 
             let value_string = value
@@ -284,10 +286,11 @@ impl CommandPaletteDialog {
         Ok(())
     }
 
+    #[allow(clippy::similar_names)]
     fn on_changed(
         searchbar: &Entry,
         dialog_tree_view: &TreeView,
-        scripts: Arc<RwLock<ScriptMap>>,
+        scripts: &Arc<RwLock<ScriptMap>>,
     ) -> Result<()> {
         let filter_store: gtk::TreeModelFilter =
             dialog_tree_view.get_model().unwrap().downcast().unwrap();
@@ -321,11 +324,12 @@ impl CommandPaletteDialog {
 
                 // TODO: use gtk_liststore_item crate
                 let script_name: String = store
-                    .get_value(&iter, NAME_COLUMN as i32)
+                    .get_value(&iter, NAME_COLUMN.try_into()?)
                     .get()
                     .unwrap()
                     .unwrap();
 
+                #[allow(clippy::cast_precision_loss)]
                 let score = script_order[&script_name] as f64;
                 let visible = true;
 
@@ -349,7 +353,7 @@ impl CommandPaletteDialog {
 
                 // TODO: use gtk_liststore_item crate
                 let script_name: String = store
-                    .get_value(&iter, NAME_COLUMN as i32)
+                    .get_value(&iter, NAME_COLUMN.try_into()?)
                     .get()
                     .unwrap()
                     .unwrap();

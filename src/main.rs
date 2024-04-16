@@ -27,7 +27,7 @@ use ui::{
 use crate::config::Config;
 use eyre::{Context, Result};
 use fs::File;
-use gio::prelude::*;
+use gio::{prelude::*, ApplicationFlags};
 use gtk::{prelude::*, Application, Window};
 
 use std::{
@@ -96,7 +96,7 @@ fn main() -> Result<()> {
 
     glib::set_application_name("Boop-GTK");
 
-    let application = Application::new(Some("fyi.zoey.Boop-GTK"), Default::default())
+    let application = Application::new(Some("fyi.zoey.Boop-GTK"), ApplicationFlags::default())
         .wrap_err("Failed to initialize GTK application")?;
 
     application.connect_activate(move |application| {
@@ -135,7 +135,7 @@ fn main() -> Result<()> {
         }()
         .expect("Failed to load boop language");
 
-        let app = App::new(boop_language, scripts.clone(), config.clone())
+        let app = App::new(&boop_language, scripts.clone(), config.clone())
             .expect("Failed to construct App");
         app.set_application(Some(application));
         app.show_all();

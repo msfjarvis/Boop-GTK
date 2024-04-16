@@ -9,10 +9,12 @@ use std::{
     fmt::{Debug, Display},
     fs::File,
     io::Read,
+    path::Path,
     rc::Rc,
     sync::Once,
     time::Instant,
 };
+use v8::CreateParams;
 
 static BOOP_WRAPPER_START: &str = "
 /***********************************
@@ -145,6 +147,7 @@ pub struct JSException {
     pub columns: Option<(usize, usize)>,
 }
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ExecutorError {
     SourceExceedsMaxLength,
@@ -169,16 +172,17 @@ impl Display for ExecutorError {
 impl Error for ExecutorError {}
 
 impl ExecutorError {
-    fn format_exception(exception: JSException) -> String {
-        match (exception.line_number, exception.columns) {
-            (Some(line_number), Some(columns)) => format!(
+    fn format_exception(exception: &JSException) -> String {
+        if let (Some(line_number), Some(columns)) = (exception.line_number, exception.columns) {
+            format!(
                 r#"<span foreground="red" weight="bold">EXCEPTION:</span> {} ({}:{} - {}:{})"#,
                 exception.exception_str, line_number, columns.0, line_number, columns.1
-            ),
-            _ => format!(
+            )
+        } else {
+            format!(
                 r#"<span foreground="red" weight="bold">EXCEPTION:</span> {}"#,
                 exception.exception_str,
-            ),
+            )
         }
     }
 
@@ -187,8 +191,9 @@ impl ExecutorError {
             ExecutorError::SourceExceedsMaxLength => {
                 String::from(r#"<span foreground="red">ERROR:</span> Script exceeds max length"#)
             }
-            ExecutorError::Compile(exception) => ExecutorError::format_exception(exception),
-            ExecutorError::Execute(exception) => ExecutorError::format_exception(exception),
+            ExecutorError::Compile(exception) | ExecutorError::Execute(exception) => {
+                ExecutorError::format_exception(&exception)
+            }
             ExecutorError::NoMain => {
                 String::from(r#"<span foreground="red">ERROR:</span> No main function"#)
             }
@@ -213,7 +218,7 @@ impl Executor {
         let mut isolate = {
             let start = Instant::now();
 
-            let isolate = v8::Isolate::new(Default::default());
+            let isolate = v8::Isolate::new(CreateParams::default());
             info!("isolate initialized in {:?}", start.elapsed());
 
             isolate
@@ -241,6 +246,7 @@ impl Executor {
     }
 
     // load source code from internal files or external filesystem depending on the path
+    #[allow(clippy::needless_pass_by_value)]
     fn load_raw_source(path: String) -> Result<String> {
         if path.starts_with("@boop/") {
             // script is internal
@@ -330,6 +336,7 @@ impl Executor {
         Ok((tc_scope.escape(context), main_function))
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn execute(&mut self, full_text: &str, selection: Option<&str>) -> Result<ExecutionStatus> {
         // setup execution status
         {
@@ -485,14 +492,11 @@ impl Executor {
             .wrap_err("Exception is not a string")?
             .to_rust_string_lossy(tc_scope);
 
-        let message = match tc_scope.message() {
-            Some(message) => message,
-            None => {
-                return Ok(JSException {
-                    exception_str,
-                    ..Default::default()
-                });
-            }
+        let Some(message) = tc_scope.message() else {
+            return Ok(JSException {
+                exception_str,
+                ..Default::default()
+            });
         };
 
         Ok(JSException {
@@ -509,6 +513,7 @@ impl Executor {
         })
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn global_require(
         scope: &mut v8::HandleScope<'_>,
         args: v8::FunctionCallbackArguments<'_>,
@@ -520,7 +525,10 @@ impl Executor {
             .ok_or_else(|| eyre!("argument to require is not a string"))
             .map(|string_arg| string_arg.to_rust_string_lossy(scope))
             .map(|mut path| {
-                if !path.ends_with(".js") {
+                if !Path::new(&path)
+                    .extension()
+                    .map_or(false, |ext| ext.eq_ignore_ascii_case("js"))
+                {
                     path.push_str(".js");
                 }
                 info!("loading {}", path);
@@ -562,6 +570,7 @@ impl Executor {
         }
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_post_info(
         scope: &mut v8::HandleScope<'_>,
         args: v8::FunctionCallbackArguments<'_>,
@@ -584,6 +593,7 @@ impl Executor {
         rv.set(undefined);
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_post_error(
         scope: &mut v8::HandleScope<'_>,
         args: v8::FunctionCallbackArguments<'_>,
@@ -606,6 +616,7 @@ impl Executor {
         rv.set(undefined);
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_insert(
         scope: &mut v8::HandleScope<'_>,
         args: v8::FunctionCallbackArguments<'_>,
@@ -628,6 +639,7 @@ impl Executor {
         rv.set(undefined);
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_full_text_getter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -649,6 +661,7 @@ impl Executor {
         );
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_full_text_setter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -674,6 +687,7 @@ impl Executor {
         *full_text = new_value;
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_text_getter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -695,6 +709,7 @@ impl Executor {
         );
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_text_setter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -720,6 +735,7 @@ impl Executor {
         *text = new_value;
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_selection_getter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -741,6 +757,7 @@ impl Executor {
         );
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn payload_selection_setter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
