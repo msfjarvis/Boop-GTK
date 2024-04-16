@@ -2,7 +2,7 @@
 name = "boop-gtk"
 build = "build.rs"
 version = "1.7.1"
-authors = ["Zoey Sheffield"]
+authors = ["Zoey Sheffield", "Harsh Shandilya <me@msfjarvis.dev>"]
 edition = "2018"
 description = """A scriptable scratchpad for developers
 
@@ -19,6 +19,7 @@ exclude = [
     "flatpak",
     "snap"
 ]
+publish = false
 
 [profile.dev]
 lto = "off"
