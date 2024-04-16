@@ -28,7 +28,7 @@ lto = "off"
 [dependencies]
 # GTK
 glib = "0.10"
-gdk = "0.13"
+gdk = "0.18"
 gdk-pixbuf = "0.9"
 pango = "0.9"
 sourceview = { version = "0.9", features = ["v3_16"] }
