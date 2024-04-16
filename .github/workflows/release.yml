@@ -13,7 +13,7 @@ jobs:
   release-linux-amd64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - name: Install rust
@@ -21,7 +21,7 @@ jobs:
         with:
           rust-version: 1.51.0
       # cache cargo
-      - uses: actions/cache@v2.1.8
+      - uses: actions/cache@v4.0.2
         with:
           path: |
             ~/.cargo/registry
@@ -34,7 +34,7 @@ jobs:
         run: cargo build --release --all-features
       - name: rename output
         run: mv target/release/boop-gtk ./boop-gtk.linux.amd64
-      - uses: actions/upload-artifact@v2.2.4
+      - uses: actions/upload-artifact@v4.3.1
         with:
           name: boop-gtk.linux.amd64
           path: ./boop-gtk.linux.amd64
@@ -42,12 +42,12 @@ jobs:
   release-snap:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - uses: snapcore/action-build@v1
         id: snapcraft
-      - uses: snapcore/action-publish@v1.0.2
+      - uses: snapcore/action-publish@v1.2.0
         if: github.event_name != 'pull_request'
         continue-on-error: true # don't fail if a manual review is required (etc)
         with:
@@ -56,7 +56,7 @@ jobs:
           release: stable
       - name: rename output
         run: mv ${{ steps.snapcraft.outputs.snap }} ./boop-gtk.snap
-      - uses: actions/upload-artifact@v2.2.4
+      - uses: actions/upload-artifact@v4.3.1
         with:
           name: boop-gtk.snap
           path: ./boop-gtk.snap
@@ -67,18 +67,18 @@ jobs:
       image: docker.io/bilelmoussaoui/flatpak-github-actions
       options: --privileged
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - name: Dependency (Python TOML)
         run: sudo dnf install -y python3-toml
       - name: Generate sources
         run: bash gen-sources.sh
-      - uses: bilelmoussaoui/flatpak-github-actions@v3
+      - uses: bilelmoussaoui/flatpak-github-actions@v6
         with:
           bundle: "boop-gtk.flatpak"
           manifest-path: "flatpak/fyi.zoey.Boop-GTK.json"
-      - uses: actions/upload-artifact@v2.2.4
+      - uses: actions/upload-artifact@v4.3.1
         with:
           name: boop-gtk.flatpak
           path: ./boop-gtk.flatpak
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - name: Install rust
@@ -95,7 +95,7 @@ jobs:
         with:
           rust-version: 1.51.0
       # cache cargo
-      - uses: actions/cache@v2.1.8
+      - uses: actions/cache@v4.0.2
         with:
           path: |
             ~/.cargo/registry
@@ -126,15 +126,15 @@ jobs:
       ]
     steps:
       # download artifacts
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: boop-gtk.linux.amd64
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: boop-gtk.snap
           path: ./
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: boop-gtk.flatpak
           path: ./
