@@ -8,9 +8,9 @@
   "packageRules": [
     {
       "matchPackageNames": [
-        "v8"
+        "v8",
       ],
-      "enabled": false
+      "enabled": false,
     },
     {
       "matchPackageNames": [
@@ -19,9 +19,9 @@
         "gio",
         "glib",
         "gtk",
-        "pango"
+        "pango",
       ],
-      "groupName": "GTK libraries"
-    }
+      "groupName": "GTK libraries",
+    },
   ]
 }
