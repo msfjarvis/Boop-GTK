@@ -69,7 +69,7 @@ features = ["v2_44"]
 
 [dev-dependencies]
 tempfile = "3.10.1"
-directories = "5.0" # TODO: remove
+directories = "5.0.1" # TODO: remove
 
 [build-dependencies]
 fs_extra = "1.3.0"
