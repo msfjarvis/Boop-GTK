@@ -115,6 +115,7 @@
             cargo-edit
             cargo-nextest
             cargo-release
+            fenix.packages.${system}.rust-analyzer
             rustStable
             stdenv.cc
           ];
