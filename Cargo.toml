@@ -13,9 +13,6 @@ homepage = "https://boop-gtk.zoey.fyi"
 repository = "https://github.com/zoeyfyi/boop-gtk/"
 keywords = ["gtk", "text-editor", "editor", "linux", "javascript"]
 categories = ["text-editors"]
-exclude = [
-    "submodules/svg-stroke-to-path", 
-]
 publish = false
 
 [profile.dev]
