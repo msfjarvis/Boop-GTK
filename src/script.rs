@@ -307,7 +307,7 @@ mod tests {
         use rust_embed::RustEmbed;
 
         #[derive(RustEmbed)]
-        #[folder = "submodules/Boop/Boop/Boop/scripts/"]
+        #[folder = "boop-scripts/upstream/Boop/Boop/scripts/"]
         struct Scripts;
 
         for file in Scripts::iter() {
@@ -341,7 +341,7 @@ mod tests {
         use rust_embed::RustEmbed;
 
         #[derive(RustEmbed)]
-        #[folder = "submodules/Boop/Scripts/"]
+        #[folder = "boop-scripts/upstream/Scripts/"]
         struct Scripts;
 
         for file in Scripts::iter() {

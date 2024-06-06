@@ -65,5 +65,5 @@ cargo build
 #### Nix
 
 ```shell
-nix run github:msfjarvis/Boop-GTK?submodules=1#
+nix run github:msfjarvis/Boop-GTK
 ```

@@ -15,7 +15,7 @@ use crate::{script::Script, XDG_DIRS};
 pub(crate) struct ScriptMap(pub BTreeMap<String, Script>);
 
 #[derive(RustEmbed)]
-#[folder = "submodules/Boop/Boop/Boop/scripts/"]
+#[folder = "boop-scripts/upstream/Boop/Boop/scripts/"]
 pub(crate) struct Scripts;
 
 impl ScriptMap {

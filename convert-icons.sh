@@ -1,10 +1,10 @@
 rm resources/icons/scalable/actions/*.svg;
-for dir in submodules/Boop/Boop/Boop/Assets.xcassets/Icons/*/; do 
+for dir in boop-scripts/upstream//Boop/Boop/Assets.xcassets/Icons/*/; do 
     # get pdf
     files=( $dir*.pdf );
     file="${files[0]}";
     # extract file name
-    name="${dir#submodules/Boop/Boop/Boop/Assets.xcassets/Icons/icons8-}";
+    name="${dir#boop-scripts/upstream/Boop/Boop/Assets.xcassets/Icons/icons8-}";
     name="${name%.imageset/}";
     name=${name,,}
     echo "Processing icon $name";
