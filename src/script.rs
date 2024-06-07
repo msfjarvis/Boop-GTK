@@ -319,6 +319,7 @@ mod tests {
             let full_text = match file.as_ref() {
                 "MinifyJSON.js" => "{\n\n\"foo\":\n\"bar\"}",
                 "SumAll.js" => "100\n9.00\n230\n2.09",
+                "HexToASCII.js" => "e10adc3949ba59abbe56e057f20f883e",
                 _ => "foobar ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ 😁 😝 😋 😄",
             };
 
