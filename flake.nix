@@ -44,8 +44,6 @@
         sha256 = "sha256-opUgs6ckUQCyDxcB9Wy51pqhd0MPGHUVbwRKKPGiwZU=";
       };
 
-      librusty_v8 = pkgs.callPackage ./librusty_v8.nix {};
-
       craneLib = (crane.mkLib pkgs).overrideToolchain rustStable;
       gladeFilter = path: builtins.match ".*glade$" path != null;
       svgFilter = path: builtins.match ".*svg$" path != null;
@@ -61,7 +59,7 @@
         buildInputs = with pkgs; [atk cairo gdk-pixbuf gtk3 gtksourceview3 harfbuzz pango zlib];
         nativeBuildInputs = with pkgs; [glib pkg-config];
         cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-        RUSTY_V8_ARCHIVE = librusty_v8;
+        RUSTY_V8_ARCHIVE = (pkgs.callPackage ./librusty_v8.nix {});
       };
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {doCheck = false;});
 
