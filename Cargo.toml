@@ -39,7 +39,7 @@ toml = "0.8.12"
 log = "0.4.21"
 env_logger = "0.11.3"
 # Fuzzy search
-fuse-rust = "0.3.2"
+fuse-rust = "0.4.0"
 # File system
 open = "5.1.2"
 xdg = "2.5.2"
