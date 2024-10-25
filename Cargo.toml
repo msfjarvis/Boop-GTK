@@ -43,7 +43,7 @@ fuse-rust = "0.4.0"
 # File system
 open = "5.1.2"
 xdg = "2.5.2"
-notify = "6.1.1"
+notify = "7.0.0"
 config = "0.14"
 # Misc utils
 lazy_static = "1.4.0"
