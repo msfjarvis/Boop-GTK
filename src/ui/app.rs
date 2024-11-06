@@ -385,16 +385,13 @@ impl App {
                     .remove_null_bytes()
                     .wrap_err("Failed to remove null bytes from text")?;
 
-                match &mut buffer.get_selection_bounds() {
-                    Some((start, end)) => {
-                        buffer.delete(start, end);
-                        buffer.insert(start, &safe_text);
-                    }
-                    None => {
-                        let mut insert_point =
-                            buffer.get_iter_at_offset(buffer.get_property_cursor_position());
-                        buffer.insert(&mut insert_point, &safe_text);
-                    }
+                if let Some((start, end)) = &mut buffer.get_selection_bounds() {
+                    buffer.delete(start, end);
+                    buffer.insert(start, &safe_text);
+                } else {
+                    let mut insert_point =
+                        buffer.get_iter_at_offset(buffer.get_property_cursor_position());
+                    buffer.insert(&mut insert_point, &safe_text);
                 }
             }
             TextReplacement::None => {
