@@ -527,7 +527,7 @@ impl Executor {
             .map(|mut path| {
                 if !Path::new(&path)
                     .extension()
-                    .map_or(false, |ext| ext.eq_ignore_ascii_case("js"))
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("js"))
                 {
                     path.push_str(".js");
                 }
