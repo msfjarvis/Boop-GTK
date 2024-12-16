@@ -22,101 +22,138 @@
   inputs.flake-compat.url = "github:nix-community/flake-compat";
   inputs.flake-compat.flake = false;
 
-  outputs = {
-    nixpkgs,
-    advisory-db,
-    crane,
-    devshell,
-    fenix,
-    flake-utils,
-    ...
-  }:
-    flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [devshell.overlays.default];
-      };
-
-      rustStable = (import fenix {inherit pkgs;}).fromToolchainFile {
-        file = ./rust-toolchain.toml;
-        sha256 = "sha256-yMuSb5eQPO/bHv+Bcf/US8LVMbf/G/0MSfiPwBhiPpk=";
-      };
-
-      craneLib = (crane.mkLib pkgs).overrideToolchain rustStable;
-      gladeFilter = path: builtins.match ".*glade$" path != null;
-      svgFilter = path: builtins.match ".*svg$" path != null;
-      embedFilter = path: builtins.match ".*lang$" path != null;
-      jsFilter = path: builtins.match ".*js$" path != null;
-      filter = path: type: (gladeFilter path) || (svgFilter path) || (embedFilter path) || (jsFilter path) || (craneLib.filterCargoSources path type);
-
-      commonArgs = {
-        src = pkgs.lib.cleanSourceWith {
-          src = craneLib.path ./.;
-          inherit filter;
+  outputs =
+    {
+      nixpkgs,
+      advisory-db,
+      crane,
+      devshell,
+      fenix,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ devshell.overlays.default ];
         };
-        buildInputs = with pkgs; [atk cairo gdk-pixbuf gtk3 gtksourceview3 harfbuzz pango zlib];
-        nativeBuildInputs = with pkgs; [glib pkg-config];
-        cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-        RUSTY_V8_ARCHIVE = (pkgs.callPackage ./librusty_v8.nix {});
-      };
-      cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {doCheck = false;});
 
-      Boop-GTK = craneLib.buildPackage (commonArgs // {doCheck = false;});
-      Boop-GTK-clippy = craneLib.cargoClippy (commonArgs
-        // {
-          inherit cargoArtifacts;
-        });
-      Boop-GTK-fmt = craneLib.cargoFmt (commonArgs // {});
-      Boop-GTK-audit = craneLib.cargoAudit (commonArgs // {inherit advisory-db;});
-      Boop-GTK-nextest = craneLib.cargoNextest (commonArgs
-        // {
-          inherit cargoArtifacts;
-          src = ./.;
-          partitions = 1;
-          partitionType = "count";
-        });
-    in {
-      checks = {
-        inherit Boop-GTK Boop-GTK-audit Boop-GTK-clippy Boop-GTK-fmt Boop-GTK-nextest;
-      };
+        rustStable = (import fenix { inherit pkgs; }).fromToolchainFile {
+          file = ./rust-toolchain.toml;
+          sha256 = "sha256-yMuSb5eQPO/bHv+Bcf/US8LVMbf/G/0MSfiPwBhiPpk=";
+        };
 
-      packages.default = Boop-GTK;
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustStable;
+        gladeFilter = path: builtins.match ".*glade$" path != null;
+        svgFilter = path: builtins.match ".*svg$" path != null;
+        embedFilter = path: builtins.match ".*lang$" path != null;
+        jsFilter = path: builtins.match ".*js$" path != null;
+        filter =
+          path: type:
+          (gladeFilter path)
+          || (svgFilter path)
+          || (embedFilter path)
+          || (jsFilter path)
+          || (craneLib.filterCargoSources path type);
 
-      apps.default = flake-utils.lib.mkApp {drv = Boop-GTK;};
-
-      devShells.default = let
-        inputsOf = drv:
-          (drv.buildInputs or [])
-          ++ (drv.nativeBuildInputs or [])
-          ++ (drv.propagatedBuildInputs or [])
-          ++ (drv.propagatedNativeBuildInputs or []);
-      in
-        pkgs.devshell.mkShell {
-          imports = ["${pkgs.devshell.extraModulesDir}/language/c.nix"];
-          bash = {interactive = "";};
-
-          language.c = {
-            includes = inputsOf Boop-GTK;
-            compiler = pkgs.stdenv.cc;
+        commonArgs = {
+          src = pkgs.lib.cleanSourceWith {
+            src = craneLib.path ./.;
+            inherit filter;
           };
-
-          env = [
-            {
-              name = "DEVSHELL_NO_MOTD";
-              value = 1;
-            }
+          buildInputs = with pkgs; [
+            atk
+            cairo
+            gdk-pixbuf
+            gtk3
+            gtksourceview3
+            harfbuzz
+            pango
+            zlib
           ];
-
-          packages = with pkgs; [
-            cargo-edit
-            cargo-nextest
-            cargo-release
-            fenix.packages.${system}.rust-analyzer
-            rustStable
-            stdenv.cc
+          nativeBuildInputs = with pkgs; [
+            glib
+            pkg-config
           ];
-
-          packagesFrom = [Boop-GTK];
+          cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+          RUSTY_V8_ARCHIVE = (pkgs.callPackage ./librusty_v8.nix { });
         };
-    });
+        cargoArtifacts = craneLib.buildDepsOnly (commonArgs // { doCheck = false; });
+
+        Boop-GTK = craneLib.buildPackage (commonArgs // { doCheck = false; });
+        Boop-GTK-clippy = craneLib.cargoClippy (
+          commonArgs
+          // {
+            inherit cargoArtifacts;
+          }
+        );
+        Boop-GTK-fmt = craneLib.cargoFmt (commonArgs // { });
+        Boop-GTK-audit = craneLib.cargoAudit (commonArgs // { inherit advisory-db; });
+        Boop-GTK-nextest = craneLib.cargoNextest (
+          commonArgs
+          // {
+            inherit cargoArtifacts;
+            src = ./.;
+            partitions = 1;
+            partitionType = "count";
+          }
+        );
+      in
+      {
+        checks = {
+          inherit
+            Boop-GTK
+            Boop-GTK-audit
+            Boop-GTK-clippy
+            Boop-GTK-fmt
+            Boop-GTK-nextest
+            ;
+        };
+
+        packages.default = Boop-GTK;
+
+        apps.default = flake-utils.lib.mkApp { drv = Boop-GTK; };
+
+        devShells.default =
+          let
+            inputsOf =
+              drv:
+              (drv.buildInputs or [ ])
+              ++ (drv.nativeBuildInputs or [ ])
+              ++ (drv.propagatedBuildInputs or [ ])
+              ++ (drv.propagatedNativeBuildInputs or [ ]);
+          in
+          pkgs.devshell.mkShell {
+            imports = [ "${pkgs.devshell.extraModulesDir}/language/c.nix" ];
+            bash = {
+              interactive = "";
+            };
+
+            language.c = {
+              includes = inputsOf Boop-GTK;
+              compiler = pkgs.stdenv.cc;
+            };
+
+            env = [
+              {
+                name = "DEVSHELL_NO_MOTD";
+                value = 1;
+              }
+            ];
+
+            packages = with pkgs; [
+              cargo-edit
+              cargo-nextest
+              cargo-release
+              fenix.packages.${system}.rust-analyzer
+              rustStable
+              stdenv.cc
+            ];
+
+            packagesFrom = [ Boop-GTK ];
+          };
+      }
+    );
 }
