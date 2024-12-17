@@ -639,7 +639,6 @@ impl Executor {
         rv.set(undefined);
     }
 
-    #[allow(clippy::needless_pass_by_value)]
     fn payload_full_text_getter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -660,7 +659,7 @@ impl Executor {
                 .into(),
         );
     }
-    #[allow(clippy::needless_pass_by_value)]
+
     fn payload_full_text_setter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -686,7 +685,6 @@ impl Executor {
         *full_text = new_value;
     }
 
-    #[allow(clippy::needless_pass_by_value)]
     fn payload_text_getter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -708,7 +706,6 @@ impl Executor {
         );
     }
 
-    #[allow(clippy::needless_pass_by_value)]
     fn payload_text_setter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -734,7 +731,6 @@ impl Executor {
         *text = new_value;
     }
 
-    #[allow(clippy::needless_pass_by_value)]
     fn payload_selection_getter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
@@ -756,7 +752,6 @@ impl Executor {
         );
     }
 
-    #[allow(clippy::needless_pass_by_value)]
     fn payload_selection_setter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
