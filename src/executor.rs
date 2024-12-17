@@ -14,18 +14,18 @@ use std::{
     sync::Once,
     time::Instant,
 };
-use v8::CreateParams;
+use v8::{ContextOptions, CreateParams};
 
 static BOOP_WRAPPER_START: &str = "
 /***********************************
 *     Start of Boop's wrapper      *
 ***********************************/
-            
+
 (function() {
     var module = {
         exports: {}
     };
-            
+
     const moduleWrapper = (function (exports, module) {
 
 /***********************************
@@ -35,16 +35,16 @@ static BOOP_WRAPPER_START: &str = "
 ";
 
 static BOOP_WRAPPER_END: &str = "
-            
+
 /***********************************
 *     Start of Boop's wrapper      *
 ***********************************/
-            
+
     }).apply(module.exports, [module.exports, module]);
 
     return module.exports;
 })();
-            
+
 /***********************************
 *      End of Boop's wrapper      *
 ***********************************/
@@ -296,7 +296,7 @@ impl Executor {
         scope: &mut v8::HandleScope<'s, ()>,
     ) -> eyre::Result<(v8::Local<'s, v8::Context>, v8::Global<v8::Function>)> {
         let scope = &mut v8::EscapableHandleScope::new(scope);
-        let context = v8::Context::new(scope);
+        let context = v8::Context::new(scope, ContextOptions::default());
         let global = context.global(scope);
         let scope = &mut v8::ContextScope::new(scope, context);
 
@@ -660,14 +660,13 @@ impl Executor {
                 .into(),
         );
     }
-
     #[allow(clippy::needless_pass_by_value)]
     fn payload_full_text_setter(
         scope: &mut v8::HandleScope<'_>,
         _key: v8::Local<'_, v8::Name>,
         value: v8::Local<'_, v8::Value>,
         _args: v8::PropertyCallbackArguments<'_>,
-        _ret: v8::ReturnValue,
+        _ret: v8::ReturnValue<()>,
     ) {
         let new_value = value
             .to_string(scope)
@@ -715,7 +714,7 @@ impl Executor {
         _key: v8::Local<'_, v8::Name>,
         value: v8::Local<'_, v8::Value>,
         _args: v8::PropertyCallbackArguments<'_>,
-        _ret: v8::ReturnValue,
+        _ret: v8::ReturnValue<()>,
     ) {
         let new_value = value
             .to_string(scope)
@@ -763,7 +762,7 @@ impl Executor {
         _key: v8::Local<'_, v8::Name>,
         value: v8::Local<'_, v8::Value>,
         _args: v8::PropertyCallbackArguments<'_>,
-        _ret: v8::ReturnValue,
+        _ret: v8::ReturnValue<()>,
     ) {
         let new_value = value
             .to_string(scope)

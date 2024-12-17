@@ -1,10 +1,9 @@
 {
-  rust,
   stdenv,
   fetchurl,
 }:
 let
-  arch = rust.toRustTarget stdenv.hostPlatform;
+  arch = stdenv.hostPlatform.rust.rustcTarget;
   fetch_librusty_v8 =
     args:
     fetchurl {
@@ -15,11 +14,11 @@ let
     };
 in
 fetch_librusty_v8 {
-  version = "0.93.0";
+  version = "130.0.2";
   shas = {
-    x86_64-linux = "sha256-kvME/WThZ76i7NNyTmZxLdWhpKOBVgosrt3/m8k/BMM=";
-    aarch64-linux = "sha256-gUrgXun7Ei0UPUgv6mi1pQujVF6yjeirSWUiVsSjdpc=";
-    x86_64-darwin = "sha256-fOgRFw6voxLvBDczW2XCpdkD2VKFAupyH9ENBVRBRzA=";
-    aarch64-darwin = "sha256-GCEL+CkBTJTz6NTSsGnPo/HK5dzIjGhQkLC2dNpnqvk=";
+    x86_64-linux = "sha256-ew2WZhdsHfffRQtif076AWAlFohwPo/RbmW/6D3LzkU=";
+    aarch64-linux = "sha256-p9+tHmKIM5wBABubHIAstpwfzO19ypPzOuaV4b6loCU=";
+    x86_64-darwin = "sha256-zNC0DAkMbbFM1M+t6rgKtN0QAm4ONEbCi6Sxivhf8dk=";
+    aarch64-darwin = "sha256-aWZ/4Q4Wttx37xOdBmTCPGP+eYGhr4CM1UkYq8pC7Qs=";
   };
 }
