@@ -46,23 +46,20 @@
         };
 
         craneLib = (crane.mkLib pkgs).overrideToolchain rustStable;
-        gladeFilter = path: builtins.match ".*glade$" path != null;
-        svgFilter = path: builtins.match ".*svg$" path != null;
-        embedFilter = path: builtins.match ".*lang$" path != null;
-        jsFilter = path: builtins.match ".*js$" path != null;
-        filter =
-          path: type:
-          (gladeFilter path)
-          || (svgFilter path)
-          || (embedFilter path)
-          || (jsFilter path)
-          || (craneLib.filterCargoSources path type);
 
         commonArgs = {
-          src = pkgs.lib.cleanSourceWith {
-            src = craneLib.path ./.;
-            inherit filter;
-          };
+          src =
+            with pkgs.lib.fileset;
+            toSource {
+              root = ./.;
+              fileset = unions [
+                (fileFilter (file: file.hasExt "glade") ./.)
+                (fileFilter (file: file.hasExt "svg") ./.)
+                (fileFilter (file: file.hasExt "lang") ./.)
+                (fileFilter (file: file.hasExt "js") ./.)
+                (craneLib.fileset.commonCargoSources ./.)
+              ];
+            };
           buildInputs = with pkgs; [
             atk
             cairo
