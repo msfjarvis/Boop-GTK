@@ -141,7 +141,7 @@ impl App {
             let app_ = app.clone();
             app.config_directory_button.connect_clicked(move |_| {
                 if let Err(open_err) = open::that(config_dir_str.clone()) {
-                    error!("could not launch config directory: {}", open_err);
+                    error!("could not launch config directory: {open_err}");
                     app_.post_notification_error(
                         "Failed to launch config directory",
                         NOTIFICATION_LONG_DELAY,
@@ -155,7 +155,7 @@ impl App {
             let app_ = app.clone();
             app.more_scripts_button.connect_clicked(move |_| {
                 if let Err(open_err) = open::that("https://boop.okat.best/scripts/") {
-                    error!("could not launch website: {}", open_err);
+                    error!("could not launch website: {open_err}");
                     app_.post_notification_error(
                         "Failed to launch website",
                         NOTIFICATION_LONG_DELAY,
@@ -333,7 +333,7 @@ impl App {
             Err(err) => {
                 let executor_err = err.downcast::<ExecutorError>().unwrap(); // can't recover from other errors
 
-                error!("Exception: {:?}", executor_err);
+                error!("Exception: {executor_err:?}");
                 self.post_notification_error(
                     &executor_err.into_notification_string(),
                     NOTIFICATION_LONG_DELAY,

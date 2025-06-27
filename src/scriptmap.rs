@@ -85,7 +85,7 @@ impl ScriptMap {
 
         // watch for changes to script folder
         let watcher = recommended_watcher(move |res| {
-            debug!("res: {:?}", res);
+            debug!("res: {res:?}");
             match res {
                 Ok(event) => {
                     let event: notify::Event = event;
@@ -130,7 +130,7 @@ impl ScriptMap {
                         }
                     }
                 }
-                Err(e) => error!("watch error: {:?}", e),
+                Err(e) => error!("watch error: {e:?}"),
             }
         });
 
@@ -142,7 +142,7 @@ impl ScriptMap {
                 info!("watching {}", script_dir.display());
 
                 if let Err(watch_error) = watcher.watch(script_dir, RecursiveMode::Recursive) {
-                    error!("watch start error: {}", watch_error);
+                    error!("watch start error: {watch_error}");
                     return;
                 }
 
@@ -153,7 +153,7 @@ impl ScriptMap {
                 }
             }
             Err(watcher_error) => {
-                error!("couldn't create watcher: {}", watcher_error);
+                error!("couldn't create watcher: {watcher_error}");
             }
         }
     }

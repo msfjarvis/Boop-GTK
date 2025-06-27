@@ -238,7 +238,7 @@ impl Dialog {
                         }
                     }
                     _ => (),
-                };
+                }
 
                 dialog_tree_view.set_cursor(&path, gtk::NONE_TREE_VIEW_COLUMN, false);
             }
@@ -275,7 +275,7 @@ impl Dialog {
                 .get();
 
             if let Some(v) = value_string {
-                debug!("v: {}", v);
+                debug!("v: {v}");
                 selected.set(v).unwrap();
                 debug!("selected: {:?}", selected.get());
             }

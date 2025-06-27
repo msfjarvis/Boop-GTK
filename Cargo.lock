@@ -216,7 +216,6 @@ dependencies = [
  "gladis_proc_macro",
  "glib",
  "gtk",
- "lazy_static",
  "log",
  "notify",
  "once_cell",

@@ -124,7 +124,7 @@ impl Script {
             let (t_sender, t_receiver) = (sender.clone(), receiver.clone());
 
             thread::spawn(move || {
-                info!("thread spawned for {}", t_name);
+                info!("thread spawned for {t_name}");
 
                 let mut executor = None;
 
@@ -164,7 +164,7 @@ impl Script {
                             warn!("executor thread received a responce on channel");
                         }
                         ExecutorJob::Kill => {
-                            info!("killing thread for {}", t_name);
+                            info!("killing thread for {t_name}");
                             return;
                         }
                     }

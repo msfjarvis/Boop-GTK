@@ -252,10 +252,7 @@ impl Executor {
             // script is internal
 
             let internal_path = path.replace("@boop/", "lib/");
-            info!(
-                "found internal script, real path: #BINARY#/{}",
-                internal_path
-            );
+            info!("found internal script, real path: #BINARY#/{internal_path}");
 
             let raw_source = String::from_utf8(
                 Scripts::get(&internal_path)
@@ -531,7 +528,7 @@ impl Executor {
                 {
                     path.push_str(".js");
                 }
-                info!("loading {}", path);
+                info!("loading {path}");
                 path
             })
             // grab the source
@@ -566,7 +563,7 @@ impl Executor {
 
         match export {
             Ok(export) => rv.set(export),
-            Err(err) => error!("failed to require script: {}", err),
+            Err(err) => error!("failed to require script: {err}"),
         }
     }
 
@@ -930,7 +927,7 @@ mod tests {
         init();
 
         let mut file = tempfile::Builder::new().suffix(".js").tempfile().unwrap();
-        write!(file, r#"┻━┻ ︵ ¯\(ツ)/¯ ︵ ┻━┻"#).unwrap();
+        write!(file, r"┻━┻ ︵ ¯\(ツ)/¯ ︵ ┻━┻").unwrap();
 
         let file_name = file.path().file_name().unwrap().to_str().unwrap();
 

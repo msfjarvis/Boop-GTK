@@ -1,8 +1,6 @@
 #![forbid(unsafe_code)]
 
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate shrinkwraprs;
 #[macro_use]
 extern crate log;
@@ -35,17 +33,15 @@ use std::{
     fs,
     io::prelude::*,
     path::PathBuf,
-    sync::{Arc, RwLock},
+    sync::{Arc, LazyLock, RwLock},
     thread,
 };
 
-lazy_static! {
-    static ref XDG_DIRS: xdg::BaseDirectories = match xdg::BaseDirectories::with_prefix("boop-gtk")
-    {
+static XDG_DIRS: LazyLock<xdg::BaseDirectories> =
+    LazyLock::new(|| match xdg::BaseDirectories::with_prefix("boop-gtk") {
         Ok(dirs) => dirs,
         Err(err) => panic!("Unable to find XDG directorys: {}", err),
-    };
-}
+    });
 
 // extract language file, ideally we would use GResource for this but sourceview doesn't support that
 // returns true if the language file already existed, false otherwise
@@ -202,11 +198,10 @@ mod tests {
     use super::*;
     use directories::ProjectDirs;
 
-    lazy_static! {
-        static ref PROJECT_DIRS: directories::ProjectDirs =
-            ProjectDirs::from("fyi", "zoey", "boop-gtk")
-                .expect("Unable to find a configuration location for your platform");
-    }
+    static PROJECT_DIRS: LazyLock<directories::ProjectDirs> = LazyLock::new(|| {
+        ProjectDirs::from("fyi", "zoey", "boop-gtk")
+            .expect("Unable to find a configuration location for your platform")
+    });
 
     #[test]
     fn test_project_dirs_dependency_change() {
