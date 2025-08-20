@@ -73,6 +73,7 @@
           nativeBuildInputs = with pkgs; [
             glib
             pkg-config
+            libiconv
           ];
           cargoClippyExtraArgs = "--all-targets -- --deny warnings";
           RUSTY_V8_ARCHIVE = (pkgs.callPackage ./librusty_v8.nix { });
@@ -123,15 +124,20 @@
               ++ (drv.propagatedNativeBuildInputs or [ ]);
           in
           pkgs.devshell.mkShell {
-            imports = [ "${pkgs.devshell.extraModulesDir}/language/c.nix" ];
+            imports = [
+              "${pkgs.devshell.extraModulesDir}/language/c.nix"
+              "${pkgs.devshell.extraModulesDir}/language/rust.nix"
+            ];
             bash = {
               interactive = "";
             };
 
             language.c = {
               includes = inputsOf Boop-GTK;
+              libraries = commonArgs.nativeBuildInputs;
               compiler = pkgs.stdenv.cc;
             };
+            language.rust.enableDefaultToolchain = false;
 
             env = [
               {
