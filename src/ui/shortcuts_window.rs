@@ -1,9 +1,9 @@
-use gtk::{ContainerExt, WidgetExt};
+use gtk4::{prelude::*, ShortcutsWindow as GtkShortcutsWindow};
 
 #[derive(Shrinkwrap)]
 pub struct ShortcutsWindow {
     #[shrinkwrap(main_field)]
-    window: gtk::ShortcutsWindow,
+    window: GtkShortcutsWindow,
 }
 
 const GENERAL_SHORTCUTS: [(&str, &str); 3] = [
@@ -29,35 +29,35 @@ const EDITOR_SHORTCUTS: [(&str, &str); 12] = [
 
 impl ShortcutsWindow {
     pub fn new() -> ShortcutsWindow {
-        let window = gtk::ShortcutsWindowBuilder::new().build();
+        let window = gtk4::ShortcutsWindow::builder().build();
 
-        let general_group = gtk::ShortcutsGroupBuilder::new().title("General").build();
+        let general_group = gtk4::ShortcutsGroup::builder().title("General").build();
         for (title, accelerator) in &GENERAL_SHORTCUTS {
-            general_group.add(
-                &gtk::ShortcutsShortcutBuilder::new()
-                    .title(title)
-                    .accelerator(accelerator)
+            general_group.append(
+                &gtk4::ShortcutsShortcut::builder()
+                    .title(*title)
+                    .accelerator(*accelerator)
                     .visible(true)
                     .build(),
             );
         }
 
-        let editor_group = gtk::ShortcutsGroupBuilder::new().title("Editor").build();
+        let editor_group = gtk4::ShortcutsGroup::builder().title("Editor").build();
         for (title, accelerator) in &EDITOR_SHORTCUTS {
-            editor_group.add(
-                &gtk::ShortcutsShortcutBuilder::new()
-                    .title(title)
-                    .accelerator(accelerator)
+            editor_group.append(
+                &gtk4::ShortcutsShortcut::builder()
+                    .title(*title)
+                    .accelerator(*accelerator)
                     .visible(true)
                     .build(),
             );
         }
 
-        let section = gtk::ShortcutsSectionBuilder::new().build();
-        section.add(&general_group);
-        section.add(&editor_group);
-        section.show_all();
-        window.add(&section);
+        let section = gtk4::ShortcutsSection::builder().build();
+        section.append(&general_group);
+        section.append(&editor_group);
+        section.show();
+        window.set_child(Some(&section));
 
         ShortcutsWindow { window }
     }

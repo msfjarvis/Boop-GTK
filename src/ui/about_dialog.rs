@@ -1,30 +1,45 @@
 use std::sync::{Arc, RwLock};
 
 use eyre::{Context, Result};
-use gladis::Gladis;
-use gtk::prelude::*;
+// use gladis4::Gladis;
+use gtk4::prelude::*;
 
 use crate::scriptmap::ScriptMap;
 
-#[derive(Gladis, Clone, Shrinkwrap)]
+// #[derive(Gladis, Clone, Shrinkwrap)]
+#[derive(Clone)]
 pub struct AboutDialog {
-    #[shrinkwrap(main_field)]
-    about_dialog: gtk::AboutDialog,
+    // #[shrinkwrap(main_field)]
+    pub about_dialog: gtk4::AboutDialog,
 }
 
 impl AboutDialog {
     pub(crate) fn new(scripts: &Arc<RwLock<ScriptMap>>) -> Result<Self> {
-        let dialog = AboutDialog::from_resource("/fyi/zoey/Boop-GTK/boop-gtk.glade")
-            .wrap_err("Failed to load boop-gtk.glade")?;
+        let about_dialog = gtk4::AboutDialog::builder()
+            .program_name("Boop-GTK")
+            .build();
+        let dialog = AboutDialog { about_dialog };
 
-        dialog.set_version(Some(env!("CARGO_PKG_VERSION")));
+        dialog
+            .about_dialog
+            .set_version(Some(env!("CARGO_PKG_VERSION")));
 
         for script in scripts.read().expect("Scripts lock is poisoned").0.values() {
             if let Some(author) = &script.metadata.author {
-                dialog.add_credit_section(&format!("{} script", &script.metadata.name), &[author]);
+                dialog
+                    .about_dialog
+                    .add_credit_section(&format!("{} script", &script.metadata.name), &[author]);
             }
         }
 
         Ok(dialog)
+    }
+
+    pub fn present(&self) {
+        self.about_dialog.present();
+    }
+
+    pub fn set_transient_for(&self, parent: Option<&impl IsA<gtk4::Window>>) {
+        self.about_dialog.set_transient_for(parent);
     }
 }

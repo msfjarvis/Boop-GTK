@@ -22,14 +22,11 @@ lto = "off"
 
 [dependencies]
 # GTK
-glib = "0.10"
-gdk = "0.13"
-gdk-pixbuf = "0.9"
-pango = "0.9"
-sourceview = { version = "0.9", features = ["v3_16"] }
+glib = "0.18"
+gdk-pixbuf = "0.18"
+pango = "0.18"
+sourceview5 = { version = "0.10", features = ["v5_6"] }
 # GTK utils
-gladis = "0.4.1"
-gladis_proc_macro = "0.4.1"
 shrinkwraprs = "0.3.0"
 # JSON
 serde = { version = "1.0.200", features = ["derive"] }
@@ -54,13 +51,13 @@ crossbeam = "0.8.4"
 fs_extra = "1.3.0"
 v8 = "130.0.2"
 
-[dependencies.gtk]
-version = "0.9"
-features = ["v3_22"]
+[dependencies.gtk4]
+version = "0.10"
+features = ["v4_4"]
 
 [dependencies.gio]
-version = "0.9"
-features = ["v2_44"]
+version = "0.18"
+features = ["v2_66"]
 
 [dev-dependencies]
 tempfile = "3.10.1"

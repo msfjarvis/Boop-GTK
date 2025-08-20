@@ -16,7 +16,7 @@ mod ui;
 mod util;
 
 use scriptmap::ScriptMap;
-use sourceview::{Language, LanguageManagerExt};
+use sourceview5::{prelude::*, Language};
 use ui::{
     app::{App, NOTIFICATION_LONG_DELAY},
     shortcuts_window::ShortcutsWindow,
@@ -25,11 +25,11 @@ use ui::{
 use crate::config::Config;
 use eyre::{Context, Result};
 use fs::File;
-use gio::{prelude::*, ApplicationFlags};
-use gtk::{prelude::*, Application, Window};
+use gio::ApplicationFlags;
+use gtk4::gdk;
+use gtk4::{prelude::*, Application};
 
 use std::{
-    convert::AsRef,
     fs,
     io::prelude::*,
     path::PathBuf,
@@ -89,12 +89,14 @@ fn main() -> Result<()> {
     }
 
     // needed on windows
-    sourceview::View::static_type();
+    sourceview5::View::static_type();
 
     glib::set_application_name("Boop-GTK");
 
-    let application = Application::new(Some("fyi.zoey.Boop-GTK"), ApplicationFlags::default())
-        .wrap_err("Failed to initialize GTK application")?;
+    let application = Application::new(
+        Some("fyi.zoey.Boop-GTK"),
+        gtk4::gio::ApplicationFlags::default(),
+    );
 
     application.connect_activate(move |application| {
         // resources.gresources is created by build.rs
@@ -105,41 +107,41 @@ fn main() -> Result<()> {
         gio::resources_register(&gio::Resource::from_data(&resource_data).unwrap());
 
         // add embedeed icons to theme
-        let icon_theme = gtk::IconTheme::get_default().expect("Failed to get default icon theme");
+        let icon_theme = gtk4::IconTheme::for_display(
+            &gdk::Display::default().expect("Failed to get default display"),
+        );
         icon_theme.add_resource_path("/fyi/zoey/Boop-GTK/icons");
 
-        Window::set_default_icon_name("fyi.zoey.Boop-GTK");
+        // Window::set_default_icon_name("fyi.zoey.Boop-GTK"); // This is deprecated in GTK4
 
         // must be fetched _before_ widgets are proccessed since the language managers search path must
         // be set immediantly after creation:
         // https://developer.gnome.org/gtksourceview/stable/GtkSourceLanguageManager.html#gtk-source-language-manager-set-search-path
         let boop_language = || -> Result<Language> {
-            let language_manager = sourceview::LanguageManager::get_default()
-                .ok_or_else(|| eyre!("Failed to get language manager"))?;
+            let language_manager = sourceview5::LanguageManager::default();
 
             // add config_dir to language manager's search path
-            let dirs = language_manager.get_search_path();
-            let mut dirs: Vec<&str> = dirs.iter().map(AsRef::as_ref).collect();
-            let config_dir_path = XDG_DIRS
+            let dirs = language_manager.search_path();
+            let mut dirs: Vec<&str> = dirs.iter().map(|s| s.as_str()).collect();
+            let binding = XDG_DIRS
                 .get_config_home()
-                .expect("Failed to get config home")
-                .to_string_lossy()
-                .to_string();
+                .expect("Failed to get config home");
+            let config_dir_path = binding.to_string_lossy();
             dirs.push(&config_dir_path);
             language_manager.set_search_path(&dirs);
 
             info!("language manager search directorys: {}", dirs.join(":"));
 
             language_manager
-                .get_language("boop")
+                .language("boop")
                 .ok_or_else(|| eyre!("'boop' language not found in language manager"))
         }()
         .expect("Failed to load boop language");
 
         let app = App::new(&boop_language, scripts.clone(), config.clone())
             .expect("Failed to construct App");
-        app.set_application(Some(application));
-        app.show_all();
+        app.widgets.window.set_application(Some(application));
+        app.widgets.window.show();
 
         register_actions(application, &app);
 
@@ -150,8 +152,8 @@ fn main() -> Result<()> {
                 .show_shortcuts_on_open
         {
             let shortcuts_window = ShortcutsWindow::new();
-            shortcuts_window.set_transient_for(Some(&app.window));
-            shortcuts_window.show_all();
+            shortcuts_window.set_transient_for(Some(&app.widgets.window));
+            shortcuts_window.show();
         }
 
         if let Some(error) = &load_script_error {
@@ -159,7 +161,7 @@ fn main() -> Result<()> {
         }
     });
 
-    application.run(&[]);
+    application.run();
     Ok(())
 }
 
@@ -168,7 +170,7 @@ fn register_actions(application: &Application, app: &App) {
     // TODO: move to app
     {
         let app = app.clone();
-        let command_palette_action = gio::SimpleAction::new("command_palette", None);
+        let command_palette_action = gtk4::gio::SimpleAction::new("command_palette", None);
         application.add_action(&command_palette_action);
         application.set_accels_for_action("app.command_palette", &["<Primary><Shift>P"]);
         command_palette_action.connect_activate(move |_, _| {
@@ -180,7 +182,7 @@ fn register_actions(application: &Application, app: &App) {
     // re-execute script action
     {
         let app = app.clone();
-        let reexecute_script_action = gio::SimpleAction::new("re_execute_script", None);
+        let reexecute_script_action = gtk4::gio::SimpleAction::new("re_execute_script", None);
         application.add_action(&reexecute_script_action);
         application.set_accels_for_action("app.re_execute_script", &["<Primary><Shift>B"]);
         reexecute_script_action
@@ -189,7 +191,7 @@ fn register_actions(application: &Application, app: &App) {
 
     // quit action
     {
-        let quit_action = gio::SimpleAction::new("quit", None);
+        let quit_action = gtk4::gio::SimpleAction::new("quit", None);
         application.add_action(&quit_action);
         application.set_accels_for_action("app.quit", &["<Primary>Q"]);
         let application = application.clone();

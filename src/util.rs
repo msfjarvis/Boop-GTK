@@ -1,8 +1,8 @@
 use std::string::FromUtf8Error;
 
 use eyre::Result;
-use glib::Cast;
-use gtk::TextViewExt;
+// Cast is available in gtk4::prelude::*
+use gtk4::prelude::*;
 
 pub trait StringExt {
     fn remove_null_bytes(self) -> Result<String, FromUtf8Error>;
@@ -20,14 +20,13 @@ impl StringExt for String {
 }
 
 pub trait SourceViewExt {
-    fn get_sourceview_buffer(&self) -> Result<sourceview::Buffer>;
+    fn get_sourceview_buffer(&self) -> Result<sourceview5::Buffer>;
 }
 
-impl SourceViewExt for sourceview::View {
-    fn get_sourceview_buffer(&self) -> Result<sourceview::Buffer> {
-        self.get_buffer()
-            .ok_or_else(|| eyre!("Failed to get buffer"))?
-            .downcast::<sourceview::Buffer>()
+impl SourceViewExt for sourceview5::View {
+    fn get_sourceview_buffer(&self) -> Result<sourceview5::Buffer> {
+        self.buffer()
+            .downcast::<sourceview5::Buffer>()
             .map_err(|_| eyre!("Failed to downcast TextBuffer to sourceview Buffer"))
     }
 }

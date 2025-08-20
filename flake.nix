@@ -64,8 +64,10 @@
             atk
             cairo
             gdk-pixbuf
-            gtk3
-            gtksourceview3
+            gtk4
+            gtksourceview5
+            libadwaita
+            graphene
             harfbuzz
             pango
             zlib
