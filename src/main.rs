@@ -38,10 +38,7 @@ use std::{
 };
 
 static XDG_DIRS: LazyLock<xdg::BaseDirectories> =
-    LazyLock::new(|| match xdg::BaseDirectories::with_prefix("boop-gtk") {
-        Ok(dirs) => dirs,
-        Err(err) => panic!("Unable to find XDG directorys: {}", err),
-    });
+    LazyLock::new(|| xdg::BaseDirectories::with_prefix("boop-gtk"));
 
 // extract language file, ideally we would use GResource for this but sourceview doesn't support that
 // returns true if the language file already existed, false otherwise
@@ -69,7 +66,10 @@ fn main() -> Result<()> {
     extract_language_file()?;
 
     // create user scripts directory
-    let scripts_dir: PathBuf = XDG_DIRS.get_config_home().join("scripts");
+    let scripts_dir: PathBuf = XDG_DIRS
+        .get_config_home()
+        .expect("Failed to get config home")
+        .join("scripts");
     fs::create_dir_all(&scripts_dir).wrap_err_with(|| {
         format!(
             "Failed to create scripts directory in config: {}",
@@ -120,7 +120,11 @@ fn main() -> Result<()> {
             // add config_dir to language manager's search path
             let dirs = language_manager.get_search_path();
             let mut dirs: Vec<&str> = dirs.iter().map(AsRef::as_ref).collect();
-            let config_dir_path = XDG_DIRS.get_config_home().to_string_lossy().to_string();
+            let config_dir_path = XDG_DIRS
+                .get_config_home()
+                .expect("Failed to get config home")
+                .to_string_lossy()
+                .to_string();
             dirs.push(&config_dir_path);
             language_manager.set_search_path(&dirs);
 
@@ -207,7 +211,9 @@ mod tests {
     fn test_project_dirs_dependency_change() {
         assert_eq!(
             PROJECT_DIRS.config_dir().to_path_buf(),
-            XDG_DIRS.get_config_home()
+            XDG_DIRS
+                .get_config_home()
+                .expect("Failed to get config home")
         );
     }
 }

@@ -137,7 +137,11 @@ impl App {
 
         // launch config directory in default file manager
         {
-            let config_dir_str = XDG_DIRS.get_config_home().to_string_lossy().to_string();
+            let config_dir_str = XDG_DIRS
+                .get_config_home()
+                .expect("Failed to get config home")
+                .to_string_lossy()
+                .to_string();
             let app_ = app.clone();
             app.config_directory_button.connect_clicked(move |_| {
                 if let Err(open_err) = open::that(config_dir_str.clone()) {

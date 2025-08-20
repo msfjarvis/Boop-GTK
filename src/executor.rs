@@ -268,7 +268,9 @@ impl Executor {
         let mut external_path = if cfg!(test) {
             env::temp_dir()
         } else {
-            let mut path = XDG_DIRS.get_config_home();
+            let mut path = XDG_DIRS
+                .get_config_home()
+                .expect("Failed to get config home");
             path.push("scripts");
             path
         };

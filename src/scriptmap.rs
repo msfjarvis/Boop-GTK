@@ -40,7 +40,9 @@ impl ScriptMap {
     }
 
     fn user_scripts_dir() -> PathBuf {
-        let mut dir = XDG_DIRS.get_config_home();
+        let mut dir = XDG_DIRS
+            .get_config_home()
+            .expect("Failed to get config home");
         dir.push("scripts");
         dir
     }
