@@ -4,13 +4,12 @@ use crate::{
     script::Script,
     scriptmap::ScriptMap,
     ui::command_palette::Dialog as CommandDialog,
-    ui::{preferences_dialog::Dialog as PreferencesDialog, shortcuts_window::ShortcutsWindow},
+    ui::preferences_dialog::Dialog as PreferencesDialog,
     util::SourceViewExt,
     util::StringExt,
-    XDG_DIRS,
 };
 use eyre::{Context, Result};
-use gdk_pixbuf::prelude::*;
+
 // use gladis4::Gladis;
 use glib::SourceId;
 use gtk4::{prelude::*, Label, Revealer};
@@ -25,9 +24,9 @@ use super::about_dialog::AboutDialog;
 pub const NOTIFICATION_LONG_DELAY: u32 = 5000;
 
 // #[derive(Gladis, Clone, Shrinkwrap)]
-#[derive(Clone)]
+#[derive(Clone, Shrinkwrap)]
 pub struct Widgets {
-    // #[shrinkwrap(main_field)]
+    #[shrinkwrap(main_field)]
     pub window: ApplicationWindow,
 
     pub header_button: Button,
@@ -36,20 +35,11 @@ pub struct Widgets {
     pub notification_revealer: Revealer,
     pub notification_label: Label,
     pub notification_button: Button,
-
-    pub re_execute_last_script_button: Button,
-    pub reset_scripts_button: Button,
-    pub preferences_button: Button,
-    pub config_directory_button: Button,
-    pub more_scripts_button: Button,
-    pub shortcuts_button: Button,
-    pub about_button: Button,
 }
 
-// #[derive(Clone, Shrinkwrap)]
-#[derive(Clone)]
+#[derive(Clone, Shrinkwrap)]
 pub struct App {
-    // #[shrinkwrap(main_field)]
+    #[shrinkwrap(main_field)]
     pub widgets: Widgets,
     pub preferences_dialog: PreferencesDialog,
     pub about_dialog: AboutDialog,
@@ -67,23 +57,26 @@ impl App {
         scripts: Arc<RwLock<ScriptMap>>,
         config: Arc<RwLock<Config>>,
     ) -> Result<Self> {
-        // Temporarily create dummy widgets without Gladis
-        let window = ApplicationWindow::builder().title("Boop-GTK").build();
+        // Use GTK4 Builder pattern to load from Glade file
+        let builder = gtk4::Builder::from_resource("/fyi/zoey/Boop-GTK/boop-gtk.glade");
 
         let widgets = Widgets {
-            window,
-            header_button: Button::new(),
-            source_view: sourceview5::View::new(),
-            notification_revealer: Revealer::new(),
-            notification_label: Label::new(None),
-            notification_button: Button::new(),
-            re_execute_last_script_button: Button::new(),
-            reset_scripts_button: Button::new(),
-            preferences_button: Button::new(),
-            config_directory_button: Button::new(),
-            more_scripts_button: Button::new(),
-            shortcuts_button: Button::new(),
-            about_button: Button::new(),
+            window: builder.object("window").expect("Failed to get window"),
+            header_button: builder
+                .object("header_button")
+                .expect("Failed to get header_button"),
+            source_view: builder
+                .object("source_view")
+                .expect("Failed to get source_view"),
+            notification_revealer: builder
+                .object("notification_revealer")
+                .expect("Failed to get notification_revealer"),
+            notification_label: builder
+                .object("notification_label")
+                .expect("Failed to get notification_label"),
+            notification_button: builder
+                .object("notification_button")
+                .expect("Failed to get notification_button"),
         };
 
         let app = App {
@@ -109,37 +102,6 @@ impl App {
             app.widgets.notification_button.add_controller(gesture);
         }
 
-        // re-execute last script
-        {
-            let app_ = app.clone();
-            app.widgets
-                .re_execute_last_script_button
-                .connect_clicked(move |_| app_.re_execute().expect("Failed to re-execute script"));
-        }
-
-        // reset the state of each script
-        {
-            let scripts = app.scripts.clone();
-            app.widgets.reset_scripts_button.connect_clicked(move |_| {
-                for script in scripts
-                    .write()
-                    .expect("Scripts lock is poisoned")
-                    .0
-                    .values_mut()
-                {
-                    script.kill_thread();
-                }
-            });
-        }
-
-        // open preferences dialog
-        {
-            let preference_dialog = app.preferences_dialog.clone();
-            app.widgets.preferences_button.connect_clicked(move |_| {
-                preference_dialog.present();
-            });
-        }
-
         {
             let source_view: sourceview5::View = app.widgets.source_view.clone();
             app.preferences_dialog
@@ -151,55 +113,15 @@ impl App {
                 });
         }
 
-        // launch config directory in default file manager
+        // Connect the popover menu to the menu button
         {
-            let config_dir_str = XDG_DIRS
-                .get_config_home()
-                .expect("Failed to get config home")
-                .to_string_lossy()
-                .to_string();
-            let app_ = app.clone();
-            app.widgets
-                .config_directory_button
-                .connect_clicked(move |_| {
-                    if let Err(open_err) = open::that(config_dir_str.clone()) {
-                        error!("could not launch config directory: {open_err}");
-                        app_.post_notification_error(
-                            "Failed to launch config directory",
-                            NOTIFICATION_LONG_DELAY,
-                        );
-                    }
-                });
-        }
-
-        // launch more scripts page in default web browser
-        {
-            let app_ = app.clone();
-            app.widgets.more_scripts_button.connect_clicked(move |_| {
-                if let Err(open_err) = open::that("https://boop.okat.best/scripts/") {
-                    error!("could not launch website: {open_err}");
-                    app_.post_notification_error(
-                        "Failed to launch website",
-                        NOTIFICATION_LONG_DELAY,
-                    );
-                }
-            });
-        }
-
-        {
-            let about_dialog: AboutDialog = app.about_dialog.clone();
-            app.widgets.about_button.connect_clicked(move |_| {
-                about_dialog.present();
-            });
-        }
-
-        {
-            let app_ = app.clone();
-            app.widgets.shortcuts_button.connect_clicked(move |_| {
-                let shortcuts_window = ShortcutsWindow::new();
-                shortcuts_window.set_transient_for(Some(&app_.widgets.window));
-                shortcuts_window.show();
-            });
+            let main_menu: gtk4::PopoverMenu = builder
+                .object("main_menu")
+                .expect("Failed to get main_menu");
+            let menu_button: gtk4::MenuButton = builder
+                .object("menu_button")
+                .expect("Failed to get menu_button");
+            menu_button.set_popover(Some(&main_menu));
         }
 
         {
@@ -281,25 +203,20 @@ impl App {
 
     pub fn run_command_palette(&self) -> Result<()> {
         let dialog = CommandDialog::new(&self.widgets.window, &self.scripts)?;
-        dialog.show();
+        let app_clone = self.clone();
 
-        dialog.present();
-        // Note: In GTK4, we need to handle dialog responses differently
-        // This would typically involve connecting to the 'response' signal
-        // For now, we'll need to refactor this to work with async/await or callbacks
-        // Temporarily commenting out the dialog handling
-        /*
-        if let gtk4::ResponseType::Accept = dialog.run() {
-            let selected: &str = dialog
-                .get_selected()
-                .ok_or_else(|| eyre!("Command palette dialog didn't return a selection"))?;
-
-            *self.last_script_executed.write().unwrap() = Some(String::from(selected));
-            self.execute_script(selected)?;
-        }
-        */
-
-        dialog.close();
+        dialog.run_async(move |selected_script| {
+            if let Some(selected) = selected_script {
+                *app_clone.last_script_executed.write().unwrap() = Some(selected.clone());
+                if let Err(e) = app_clone.execute_script(&selected) {
+                    error!("Failed to execute script: {}", e);
+                    app_clone.post_notification_error(
+                        &format!("Failed to execute script: {}", e),
+                        NOTIFICATION_LONG_DELAY,
+                    );
+                }
+            }
+        });
 
         Ok(())
     }

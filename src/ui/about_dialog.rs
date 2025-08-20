@@ -1,24 +1,28 @@
 use std::sync::{Arc, RwLock};
 
-use eyre::{Context, Result};
+use eyre::Result;
 // use gladis4::Gladis;
 use gtk4::prelude::*;
 
 use crate::scriptmap::ScriptMap;
 
 // #[derive(Gladis, Clone, Shrinkwrap)]
-#[derive(Clone)]
+#[derive(Clone, Shrinkwrap)]
 pub struct AboutDialog {
-    // #[shrinkwrap(main_field)]
+    #[shrinkwrap(main_field)]
     pub about_dialog: gtk4::AboutDialog,
 }
 
 impl AboutDialog {
     pub(crate) fn new(scripts: &Arc<RwLock<ScriptMap>>) -> Result<Self> {
-        let about_dialog = gtk4::AboutDialog::builder()
-            .program_name("Boop-GTK")
-            .build();
-        let dialog = AboutDialog { about_dialog };
+        // Use GTK4 Builder pattern to load from Glade file
+        let builder = gtk4::Builder::from_resource("/fyi/zoey/Boop-GTK/boop-gtk.glade");
+
+        let dialog = AboutDialog {
+            about_dialog: builder
+                .object("about_dialog")
+                .expect("Failed to get about_dialog"),
+        };
 
         dialog
             .about_dialog

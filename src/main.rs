@@ -25,9 +25,8 @@ use ui::{
 use crate::config::Config;
 use eyre::{Context, Result};
 use fs::File;
-use gio::ApplicationFlags;
 use gtk4::gdk;
-use gtk4::{prelude::*, Application};
+use gtk4::Application;
 
 use std::{
     fs,
@@ -112,7 +111,9 @@ fn main() -> Result<()> {
         );
         icon_theme.add_resource_path("/fyi/zoey/Boop-GTK/icons");
 
-        // Window::set_default_icon_name("fyi.zoey.Boop-GTK"); // This is deprecated in GTK4
+        // Set the application icon using the GTK4 way
+        // Note: Application doesn't have set_icon_name in GTK4, it's set via .desktop file
+        // or we can set it on individual windows
 
         // must be fetched _before_ widgets are proccessed since the language managers search path must
         // be set immediantly after creation:
@@ -167,7 +168,6 @@ fn main() -> Result<()> {
 
 fn register_actions(application: &Application, app: &App) {
     // opening command palette action
-    // TODO: move to app
     {
         let app = app.clone();
         let command_palette_action = gtk4::gio::SimpleAction::new("command_palette", None);
@@ -182,11 +182,89 @@ fn register_actions(application: &Application, app: &App) {
     // re-execute script action
     {
         let app = app.clone();
-        let reexecute_script_action = gtk4::gio::SimpleAction::new("re_execute_script", None);
+        let reexecute_script_action = gtk4::gio::SimpleAction::new("re-execute-last-script", None);
         application.add_action(&reexecute_script_action);
-        application.set_accels_for_action("app.re_execute_script", &["<Primary><Shift>B"]);
+        application.set_accels_for_action("app.re-execute-last-script", &["<Primary><Shift>B"]);
         reexecute_script_action
             .connect_activate(move |_, _| app.re_execute().expect("Failed to re-execute script"));
+    }
+
+    // reset scripts action
+    {
+        let app = app.clone();
+        let reset_scripts_action = gtk4::gio::SimpleAction::new("reset-scripts", None);
+        application.add_action(&reset_scripts_action);
+        reset_scripts_action.connect_activate(move |_, _| {
+            for script in app
+                .scripts
+                .write()
+                .expect("Scripts lock is poisoned")
+                .0
+                .values_mut()
+            {
+                script.kill_thread();
+            }
+        });
+    }
+
+    // preferences action
+    {
+        let app = app.clone();
+        let preferences_action = gtk4::gio::SimpleAction::new("preferences", None);
+        application.add_action(&preferences_action);
+        preferences_action.connect_activate(move |_, _| {
+            app.preferences_dialog.present();
+        });
+    }
+
+    // config directory action
+    {
+        let config_dir_action = gtk4::gio::SimpleAction::new("config-directory", None);
+        application.add_action(&config_dir_action);
+        config_dir_action.connect_activate(move |_, _| {
+            if let Err(e) = open::that(
+                XDG_DIRS
+                    .get_config_home()
+                    .expect("Failed to get config home"),
+            ) {
+                error!("Failed to open config directory: {}", e);
+            }
+        });
+    }
+
+    // more scripts action
+    {
+        let more_scripts_action = gtk4::gio::SimpleAction::new("more-scripts", None);
+        application.add_action(&more_scripts_action);
+        more_scripts_action.connect_activate(move |_, _| {
+            if let Err(e) =
+                open::that("https://github.com/IvanMathy/Boop/tree/main/Boop/Boop/scripts")
+            {
+                error!("Failed to open more scripts URL: {}", e);
+            }
+        });
+    }
+
+    // shortcuts action
+    {
+        let app = app.clone();
+        let shortcuts_action = gtk4::gio::SimpleAction::new("shortcuts", None);
+        application.add_action(&shortcuts_action);
+        shortcuts_action.connect_activate(move |_, _| {
+            let shortcuts_window = ShortcutsWindow::new();
+            shortcuts_window.set_transient_for(Some(&app.widgets.window));
+            shortcuts_window.show();
+        });
+    }
+
+    // about action
+    {
+        let app = app.clone();
+        let about_action = gtk4::gio::SimpleAction::new("about", None);
+        application.add_action(&about_action);
+        about_action.connect_activate(move |_, _| {
+            app.about_dialog.present();
+        });
     }
 
     // quit action
