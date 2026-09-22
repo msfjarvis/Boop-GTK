@@ -682,9 +682,9 @@ dependencies = [
 
 [[package]]
 name = "fuse-rust"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf29d70efdbafa7d2dc40083514b205c8d8885fba815778acc57100a9029200c"
+checksum = "d737829f4fb6ee1c301579447835cbc8fcacd205e3c7c3eace3becfb4496dd45"
 dependencies = [
  "rayon",
 ]
